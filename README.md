@@ -1,7 +1,7 @@
-# RoofSpotter: Automated Roof Detection Using Machine Learning
+# RoofSpotter: Automated Roof Detection Using Mask R-CNN and Building Boundary Regularization
 
-RoofSpotter is a machine learning and deep learning project aimed at automating the detection of house roof locations in images obtained from satellite imagery providers like Google Maps or street-level views. The project utilizes state-of-the-art computer vision techniques to analyze images and identify regions corresponding to rooftops.
+RoofSpotter is an advanced machine learning and deep learning project aimed at automating the detection of house rooftops in satellite images, specifically tailored for the Bavarian region of Germany. Leveraging "The Bavarian Buildings Dataset (BBD)," which provides detailed building footprint information combined with high-resolution imagery, RoofSpotter employs state-of-the-art computer vision techniques to precisely identify and outline rooftop structures.
 
-The system will receive input images through an API, process them using a pre-trained neural network model, and output images with bounding boxes or rectangles outlining the detected roof areas. The primary focus will be on accurately identifying and delineating individual roof structures within the images.
+The project utilizes the Mask R-CNN (Region-based Convolutional Neural Network) architecture as the primary tool for initial rooftop detection. Mask R-CNN is a robust deep learning model capable of simultaneously detecting object instances and generating pixel-wise segmentation masks, making it well-suited for tasks requiring precise spatial localization.
 
-The project will involve several key steps, including data collection, preprocessing, model development, training, evaluation, and deployment. To achieve robust and accurate performance, the model will be trained on diverse datasets containing a wide variety of roof types, orientations, and environmental conditions.
+Following the initial detection with Mask R-CNN, RoofSpotter incorporates Building Boundary Regularization techniques to refine and simplify the shape of the detected roofs. This step enhances the accuracy and usability of the detected rooftop outlines by smoothing irregularities and ensuring geometric consistency.
