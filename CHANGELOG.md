@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added the data_loading.py file to the project's src folder.
+    - The BavarianBuildingDataset class contains the methods to load and split the dataset.
+    - A generator() method to load the dataset in batches during training.
+- Added the data_analysis.ipynb file to the project's notebooks folder.
+    - The file contains the code to analyze the dataset.
+
+
+## [0.1.1] - 2024-02-27
+
+### Added
+
 - Added the 'The Bavarian Buildings Dataset' to the project's data folder.
     - bbd2k5-image: 2500px x 2500px satellite images of Bavaria.
     - bbd2k5-umring: 2500px x 2500px binary masks of the buildings in the images.
@@ -21,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Updated the README.md file with a more detailed project description.
 - Decided to use 'The Bavarian Buildings Dataset' as the dataset for this project.
 
-## [0.1.0]
+## [0.1.0] - 2024-02-15
 
 ### Added
 
