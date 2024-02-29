@@ -11,9 +11,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Added the data_loading.py file to the project's src folder.
     - The BavarianBuildingDataset class contains the methods to load and split the dataset.
-    - A generator() method to load the dataset in batches during training.
-- Added the data_analysis.ipynb file to the project's notebooks folder.
-    - The file contains the code to analyze the dataset.
+    - A generator() function to load the dataset in batches during training.
+
+- Added the mask_rcnn.py file to the project's src folder.
+    - The MaskRCNN class contains the methods to construct the Mask R-CNN model.
+
+- Added files for each of the components of the Mask R-CNN model in the src folder.
+    - backbone.py contains the ResNet50 backbone.
+    - rpn.py contains the Region Proposal Network.
+    - roi_align.py contains the Region of Interest Align layer.
+    - classifier.py contains the classifier layer.
+    - mask_head.py contains the mask head.
+    - utils.py contains the utility functions for the model.
+    - visualize.py contains the visualization functions for the model.
+
+- Added the data_tests.ipynb file to the project's notebooks folder.
+    - A notebook to test the data_loading.py file.
+- Added the pipeline_tests.ipynb file to the project's notebooks folder.
+    - A notebook to test the individual components of the pipeline.
 
 
 ## [0.1.1] - 2024-02-27
@@ -30,7 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Changed the project's structure to a more organized one.
 - Updated the README.md file with a more detailed project description.
-- Decided to use 'The Bavarian Buildings Dataset' as the dataset for this project.
+
 
 ## [0.1.0] - 2024-02-15
 
