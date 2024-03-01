@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from backbone import Backbone
 from rpn import RPN
-from roi_align import ROIAlign
+from roi_align import ROIAlignLayer
 from classifier import Classifier
 from mask_head import MaskHead
 
@@ -12,9 +12,9 @@ class MaskRCNN:
         self.config = config
         self.backbone = Backbone(self.config['input_shape'], self.config['trainable_layers'])
         self.rpn = RPN(self.backbone)
-        self.roi_align = ROIAlign(self.backbone, self.config['pool_size'], self.config['num_rois'])
-        self.classifier = Classifier(self.roi_align, self.config['num_classes'])
-        self.mask_head = MaskHead(self.roi_align, self.config['num_classes'])
+        self.roi_align_layer = ROIAlignLayer(self.backbone, self.config['pool_size'], self.config['num_rois'])
+        self.classifier = Classifier(self.roi_align_layer, self.config['num_classes'])
+        self.mask_head = MaskHead(self.roi_align_layer, self.config['num_classes'])
         self.model = self.build_model()
 
     def build_model(self):
@@ -28,7 +28,7 @@ class MaskRCNN:
         rois = self.rpn(feature_map)
 
         # Get the ROI-aligned feature maps from the ROI Align layer
-        roi_aligned = self.roi_align([feature_map, rois])
+        roi_aligned = self.roi_align_layer([feature_map, rois])
 
         # Get the class scores and bounding box coordinates from the classifier
         class_scores, bbox = self.classifier(roi_aligned)
@@ -39,3 +39,24 @@ class MaskRCNN:
         # Create the model
         model = tf.keras.Model(inputs=input_image, outputs=[rois, class_scores, bbox, masks])
         return model
+
+
+# TODO:
+    
+# The Road to a Working Model
+
+#     Complete the Components:  Carefully revisit our earlier discussions and fill in the missing pieces within each of your component files.
+
+#     Training Configuration:
+#         Decide on your dataset loading, data splitting, and augmentation procedures.
+#         Choose an optimizer (e.g., Adam or SGD with momentum).
+#         Set a learning rate and consider a learning rate schedule.
+#         Implement the Mask R-CNN's overall loss function, which will likely be a combination of the individual RPN, classifier, and mask losses.
+
+#     Training: Write the training loop in TensorFlow. This involves:
+#         Fetching batches of data.
+#         Passing data through your Mask R-CNN model.
+#         Calculating losses.
+#         Updating model weights using backpropagation and your chosen optimizer.
+
+#     Evaluation: Add code to evaluate your model's performance on your validation set using metrics like average precision (AP), which is standard for object detection and segmentation tasks.

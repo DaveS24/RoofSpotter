@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- TODO-lists in each component of the pipeline to keep track of the tasks that need to be done.
+
+
+## [0.2.0] - 2024-02-29
+
+### Added
+
 - Added the data_loading.py file to the project's src folder.
     - The BavarianBuildingDataset class contains the methods to load and split the dataset.
     - A generator() function to load the dataset in batches during training.
