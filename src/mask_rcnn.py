@@ -5,10 +5,11 @@ from rpn import RPN
 from roi_align import ROIAlignLayer
 from classifier import Classifier
 from mask_head import MaskHead
+from utils import Config
 
 
 class MaskRCNN:
-    def __init__(self, config):
+    def __init__(self, config=Config()):
         self.config = config
         self.backbone = Backbone(self.config['input_shape'], self.config['trainable_layers'])
         self.rpn = RPN(self.backbone, self.config['input_shape'])

@@ -1,5 +1,17 @@
 import numpy as np
 
+
+class Config:
+    def __init__(self):
+        self['input_shape'] = (250, 250, 3)
+        self['trainable_layers'] = 3
+        self['pool_size'] = (7, 7)
+        self['num_rois'] = 32
+        self['num_classes'] = 2
+        self['rpn_optimizer'] = 'adam'
+        self['classifier_optimizer'] = 'adam'
+        
+
 class AnchorGenerator:
     @classmethod
     def generate_anchors(cls, base_size=16, ratios=[0.5, 1, 2], scales=2**np.arange(3, 6)):
