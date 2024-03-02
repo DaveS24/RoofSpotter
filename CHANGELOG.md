@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
+## [0.2.2] - 2024-03-02
+
+### Added
+
+- ROI Integration in the roi_align.py file.
+- Bilinear Interpolation in the roi_align.py file.
+
+
 ## [0.2.1] - 2024-03-02
 
 ### Added
