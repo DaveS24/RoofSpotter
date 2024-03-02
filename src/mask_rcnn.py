@@ -16,7 +16,6 @@ class MaskRCNN:
         self.classifier = Classifier(self.roi_align_layer, self.config['num_classes'])
         self.mask_head = MaskHead(self.roi_align_layer, self.config['num_classes'])
         self.model = self.build_model()
-        self.compile_model()
 
     def build_model(self):
         # Get the input image
@@ -43,6 +42,7 @@ class MaskRCNN:
     
     def compile_model(self):
         self.rpn.compile_model(self.config['rpn_optimizer'])
+        self.classifier.compile_model(self.config['classifier_optimizer'])
 
 
 # TODO:

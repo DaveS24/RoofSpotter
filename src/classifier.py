@@ -19,26 +19,31 @@ class Classifier:
         class_scores = tf.keras.layers.Dense(self.num_classes, activation='softmax', name='class_scores')(x)
         # Apply a fully connected layer to predict the bounding box coordinates
         bbox = tf.keras.layers.Dense(self.num_classes * 4, activation='linear', name='bbox')(x)
+        bbox = tf.keras.layers.Reshape((-1, self.num_classes, 4))(bbox)
 
         # Create the layer
         layer = tf.keras.Model(inputs=self.roi_align_layer.layer.input, outputs=[class_scores, bbox])
         return layer
-
-
-# TODO:
     
-# Key Considerations and Missing Elements
+    def classifier_loss(self, y_true, y_pred):
+        # Separate the ground truth labels and bounding boxes
+        y_true_class = y_true[:, :, :1]
+        y_true_bbox = y_true[:, :, 1:]
 
-#     Bounding Box Representation:  Think carefully about how bounding box coordinates are represented in your bbox output. Ensure you understand whether the adjustments are relative to the ROIs or absolute coordinates in the image space.
+        # Separate the predicted class scores and bounding boxes
+        y_pred_class = y_pred[:, :, :1]
+        y_pred_bbox = y_pred[:, :, 1:]
 
-#     Loss Function: Similar to the RPN, you'll need a multi-task loss for the classifier and regressor. It will likely include classification loss (e.g., cross-entropy) and a bounding box regression loss (e.g., smooth L1 loss).
+        # Compute the classification loss
+        classification_loss = tf.keras.losses.categorical_crossentropy(y_true_class, y_pred_class)
 
-#     Class-Specific Bounding Boxes:  Typically, in Mask R-CNN, the bounding box regression output has 4 values per class, allowing the model to fine-tune bounding boxes independently for each class. You might need to reshape your bbox output accordingly.
+        # Compute the bounding box regression loss
+        regression_loss = tf.keras.losses.huber(y_true_bbox, y_pred_bbox)
 
-# Next Steps
+        # Combine the losses
+        total_loss = classification_loss + regression_loss
 
-#     Clarify Coordinate Representation: Check if your bounding box outputs require transformation (from relative to absolute coordinates, or vice versa).
-#     Reshape Bounding Box Output: If necessary, modify your code to generate class-specific bounding box regression adjustments.
-#     Implement Loss Function: Implement the combined classification and regression loss.
-
-# Important Note: Consider how the outputs of your classifier and bounding box regressor will be used to select the final predicted boxes and masks. There's often a step of filtering or merging based on class scores and the adjusted bounding boxes.
+        return total_loss
+    
+    def compile_model(self, optimizer):
+        self.layer.compile(optimizer=optimizer, loss=self.classifier_loss)

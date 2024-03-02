@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
+## [0.2.3] - 2024-03-02
+
+### Added
+
+- Loss Function in the classifier.py file.
+    - Classification Loss
+    - Regression Loss
+
+### Changed
+
+- Reshape the bounding box predictions into a 3D tensor with shape (batch_size, num_classes, 4) in the classifier.py file.
+
+
 ## [0.2.2] - 2024-03-02
 
 ### Added
