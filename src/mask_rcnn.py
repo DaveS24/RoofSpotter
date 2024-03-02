@@ -11,11 +11,12 @@ class MaskRCNN:
     def __init__(self, config):
         self.config = config
         self.backbone = Backbone(self.config['input_shape'], self.config['trainable_layers'])
-        self.rpn = RPN(self.backbone)
+        self.rpn = RPN(self.backbone, self.config['input_shape'])
         self.roi_align_layer = ROIAlignLayer(self.backbone, self.config['pool_size'], self.config['num_rois'])
         self.classifier = Classifier(self.roi_align_layer, self.config['num_classes'])
         self.mask_head = MaskHead(self.roi_align_layer, self.config['num_classes'])
         self.model = self.build_model()
+        self.compile_model()
 
     def build_model(self):
         # Get the input image
@@ -39,6 +40,9 @@ class MaskRCNN:
         # Create the model
         model = tf.keras.Model(inputs=input_image, outputs=[rois, class_scores, bbox, masks])
         return model
+    
+    def compile_model(self):
+        self.rpn.compile_model(self.config['rpn_optimizer'])
 
 
 # TODO:

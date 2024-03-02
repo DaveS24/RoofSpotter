@@ -5,11 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
-## [Unreleased]
+## [0.2.1] - 2024-03-02
 
 ### Added
 
 - TODO-lists in each component of the pipeline to keep track of the tasks that need to be done.
+- Anchor Application and Proposal Generation in the rpn.py file.
+    - Sliding Window
+    - Anchor Mapping
+    - Proposal Generation
+- Objectness Scores and Refinement in the rpn.py file.
+    - Score Calculation
+    - Bounding Box Regression
+- Loss Function in the rpn.py file.
+    - Classification Loss
+    - Regression Loss
+- Non-Maximum Suppression in the rpn.py file.
 
 
 ## [0.2.0] - 2024-02-29
