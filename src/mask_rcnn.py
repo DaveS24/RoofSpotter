@@ -44,6 +44,7 @@ class MaskRCNN:
     def compile_model(self):
         self.rpn.compile_model(self.config['rpn_optimizer'])
         self.classifier.compile_model(self.config['classifier_optimizer'])
+        self.mask_head.compile_model(self.config['mask_head_optimizer'])
 
 
 # TODO:

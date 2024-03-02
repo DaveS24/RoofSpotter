@@ -20,17 +20,16 @@ class MaskHead:
         # Create the layer
         layer = tf.keras.Model(inputs=self.roi_align_layer.layer.input, outputs=x)
         return layer
-
-
-# TODO:
     
-# Considerations and Missing Elements
+    def mask_loss(y_true, y_pred):
+        # Flatten the tensors
+        y_true = tf.reshape(y_true, [-1])
+        y_pred = tf.reshape(y_pred, [-1])
 
-#     Output Shape: Consider the desired resolution of your final mask predictions. Do you want them to match the original ROI size or a different resolution? You might need additional upsampling or resizing to achieve the correct output shape.
+        # Compute the binary cross-entropy loss
+        loss = tf.keras.losses.BinaryCrossentropy()(y_true, y_pred)
 
-#     Loss Function: The most common loss function for instance segmentation is binary cross-entropy applied at the pixel level. Make sure you implement a loss that compares the predicted masks to the ground truth masks.
-
-# Next Steps:
-
-#     Upsampling/Resizing: Decide on your desired mask resolution and adjust your network architecture if needed.
-#     Loss Implementation: Implement the mask loss, likely using binary cross-entropy in TensorFlow.
+        return loss
+    
+    def compile_model(self, optimizer):
+        self.layer.compile(optimizer=optimizer, loss=self.mask_loss)

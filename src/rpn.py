@@ -84,7 +84,7 @@ class RPN:
         selected_boxes, selected_scores = self.non_maximum_suppression(objectness_scores, refined_anchors, max_output_size=300)
         return tf.keras.Model(inputs=self.model.input, outputs=[selected_scores, selected_boxes])
     
-    def smooth_l1_loss(self, y_true, y_pred):
+    def smooth_l1_loss(y_true, y_pred):
         abs_loss = tf.abs(y_true - y_pred)
         sq_loss = 0.5 * (y_true - y_pred)**2
         mask = tf.cast(tf.less(abs_loss, 1.0), 'float32')

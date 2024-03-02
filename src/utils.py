@@ -10,7 +10,8 @@ class Config:
         self['num_classes'] = 2
         self['rpn_optimizer'] = 'adam'
         self['classifier_optimizer'] = 'adam'
-        
+        self['mask_head_optimizer'] = 'adam'
+
 
 class AnchorGenerator:
     @classmethod

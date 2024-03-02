@@ -25,7 +25,7 @@ class Classifier:
         layer = tf.keras.Model(inputs=self.roi_align_layer.layer.input, outputs=[class_scores, bbox])
         return layer
     
-    def classifier_loss(self, y_true, y_pred):
+    def classifier_loss(y_true, y_pred):
         # Separate the ground truth labels and bounding boxes
         y_true_class = y_true[:, :, :1]
         y_true_bbox = y_true[:, :, 1:]

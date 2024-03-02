@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
-## [Unreleased]
+## [0.2.5] - 2024-03-02
+
+### Added
+
+- Loss Function in the mask_head.py file.
+    - Mask Loss
+
+### Fixed
+
+- Removed the '.vscode' folder from the project's repository.
+
+
+## [0.2.4] - 2024-03-02
 
 ### Added
 
