@@ -15,7 +15,7 @@ class Config:
 
 class AnchorGenerator:
     @classmethod
-    def generate_anchors(cls, base_size=16, ratios=[0.5, 1, 2], scales=2**np.arange(3, 6)):
+    def generate_anchors(cls, base_size=16, ratios=[0.5, 1, 1.5, 2], scales=2**np.arange(3, 5)):
         base_anchor = np.array([1, 1, base_size, base_size]) - 1
         ratio_anchors = cls._ratio_enum(base_anchor, ratios)
         anchors = np.vstack([cls._scale_enum(ratio_anchors[i, :], scales) for i in range(ratio_anchors.shape[0])])

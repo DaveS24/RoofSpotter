@@ -15,6 +15,8 @@ class RPN:
         # Calculate objectness scores
         objectness_scores = tf.nn.softmax(x_class)[:, 1]
 
+        anchors = tf.cast(anchors, tf.float32)
+
         # Apply regression adjustments to the anchors
         dx = x_regr[:, 0] * anchors[:, 2]
         dy = x_regr[:, 1] * anchors[:, 3]
@@ -78,6 +80,9 @@ class RPN:
         anchors = tf.reshape(anchors, [-1, 4])
         x_class = tf.reshape(x_class, [-1, 2])
         x_regr = tf.reshape(x_regr, [-1, 4])
+
+        # Define the model to access it's output-shape
+        self.model = tf.keras.Model(inputs=self.backbone.model.input, outputs=[x_class, x_regr, anchors])
 
         x_class, x_regr, anchors = self.model.output
         objectness_scores, refined_anchors = self.apply_regressions(x_class, x_regr, anchors)
