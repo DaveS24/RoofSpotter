@@ -10,13 +10,20 @@ class Classifier:
     def build_layer(self):
         # Get the ROI-aligned feature maps from the ROI Align layer
         roi_aligned = self.roi_align_layer.layer.output
-        x = tf.keras.layers.Flatten()(roi_aligned)
+
+        # Apply a convolutional layer to reduce dimensionality
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv2D(512, (2, 2), activation='relu'))(roi_aligned)
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.BatchNormalization())(x)
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.MaxPooling2D((2, 2)))(x)
+
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten())(x)
 
         # Apply a fully connected layer to extract features
         x = tf.keras.layers.Dense(1024, activation='relu')(x)
 
         # Apply a fully connected layer to predict the class scores
         class_scores = tf.keras.layers.Dense(self.num_classes, activation='softmax', name='class_scores')(x)
+
         # Apply a fully connected layer to predict the bounding box coordinates
         bbox = tf.keras.layers.Dense(self.num_classes * 4, activation='linear', name='bbox')(x)
         bbox = tf.keras.layers.Reshape((-1, self.num_classes, 4))(bbox)

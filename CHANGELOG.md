@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed dimensions of the anchors in the rpn.py file.
 - Fixed dimensions of the rois in the roi_align.py file.
 - Fixed dimensions of the region proposals in the roi_align.py file.
+- Reduced memory usage in the classifier.py file by implementing a convolutional layer.
+- Fixed dimensions of the aligned features in the mask_head.py file.
 
 
 ## [0.2.6] - 2024-03-04

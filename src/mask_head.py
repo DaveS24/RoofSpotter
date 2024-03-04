@@ -12,10 +12,10 @@ class MaskHead:
         roi_aligned = self.roi_align_layer.layer.output
 
         # Apply a series of convolutional and upsampling layers
-        x = tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu')(roi_aligned)
-        x = tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu')(x)
-        x = tf.keras.layers.Conv2DTranspose(256, (2, 2), strides=2, activation='relu')(x)
-        x = tf.keras.layers.Conv2D(self.num_classes, (1, 1), activation='sigmoid')(x)
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'))(roi_aligned)
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'))(x)
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv2DTranspose(256, (2, 2), strides=2, activation='relu'))(x)
+        x = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv2D(self.num_classes, (1, 1), activation='sigmoid'))(x)
 
         # Create the layer
         layer = tf.keras.Model(inputs=self.roi_align_layer.layer.input, outputs=x)
