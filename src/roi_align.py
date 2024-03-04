@@ -22,14 +22,33 @@ class ROIAlignLayer:
             rpn_proposals[:, 2]   # x2
         ], axis=-1)
 
+        # Limit the number of RPN proposals to the same number as the ROIs
+        rpn_proposals = tf.slice(rpn_proposals, [0, 0, 0], [-1, self.num_rois, -1])
+
         # Combine the ROIs and RPN proposals
-        combined_rois = tf.concat([rois, rpn_proposals], axis=0)
+        combined_rois = tf.concat([rois, rpn_proposals], axis=1)
 
         # Normalize the coordinates of the ROIs by the spatial dimension of the feature map
-        rois_norm = combined_rois / tf.cast(tf.shape(feature_map)[1:3], tf.float32)
+        spatial_dims = tf.cast(tf.shape(feature_map)[1:3], tf.float32)
+        rois_norm = tf.stack([
+            combined_rois[..., 0] / spatial_dims[0],  # y1
+            combined_rois[..., 1] / spatial_dims[1],  # x1
+            combined_rois[..., 2] / spatial_dims[0],  # y2
+            combined_rois[..., 3] / spatial_dims[1]   # x2
+        ], axis=-1)
+
+        # Reshape the rois_norm tensor to be 2-D
+        rois_norm = tf.reshape(rois_norm, [-1, 4])
+
+        # Adjust the box_ind argument to match the new shape of rois_norm
+        box_ind = tf.range(tf.shape(feature_map)[0])
+        box_ind = tf.repeat(box_ind, tf.shape(rois_norm)[0] // tf.shape(feature_map)[0])
 
         # Use crop_and_resize to extract the ROIs and reduce them to the pool size
-        rois_aligned = tf.image.crop_and_resize(feature_map, rois_norm, tf.range(tf.shape(combined_rois)[0]), self.pool_size)
+        rois_aligned = tf.image.crop_and_resize(feature_map, rois_norm, box_ind, self.pool_size)
+
+        # Reshape the rois_aligned tensor back to its original shape
+        rois_aligned = tf.reshape(rois_aligned, [-1, self.num_rois, self.pool_size[0], self.pool_size[1], tf.shape(feature_map)[-1]])
 
         return rois_aligned
 

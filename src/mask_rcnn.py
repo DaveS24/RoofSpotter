@@ -22,16 +22,16 @@ class MaskRCNN:
         print("RPN model output shape:", self.rpn.model.output_shape)
 
         self.roi_align_layer = ROIAlignLayer(self.backbone, self.config.pool_size, self.config.num_rois)
-        print("ROI Align layer input shape:", self.roi_align_layer.input_shape)
-        print("ROI Align layer output shape:", self.roi_align_layer.output_shape)
+        print("ROI Align layer input shape:", self.roi_align_layer.layer.input_shape)
+        print("ROI Align layer output shape:", self.roi_align_layer.layer.output_shape)
 
         self.classifier = Classifier(self.roi_align_layer, self.config.num_classes)
-        print("Classifier model input shape:", self.classifier.model.input_shape)
-        print("Classifier model output shape:", self.classifier.model.output_shape)
+        print("Classifier model input shape:", self.classifier.layer.input_shape)
+        print("Classifier model output shape:", self.classifier.layer.output_shape)
 
         self.mask_head = MaskHead(self.roi_align_layer, self.config.num_classes)
-        print("Mask head model input shape:", self.mask_head.model.input_shape)
-        print("Mask head model output shape:", self.mask_head.model.output_shape)
+        print("Mask head model input shape:", self.mask_head.layer.input_shape)
+        print("Mask head model output shape:", self.mask_head.layer.output_shape)
 
         # Build the Mask R-CNN model
         self.model = self.build_model()

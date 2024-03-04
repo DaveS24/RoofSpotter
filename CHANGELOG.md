@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Fixed dimensions of the anchors in the rpn.py file.
+- Fixed dimensions of the rois in the roi_align.py file.
+- Fixed dimensions of the region proposals in the roi_align.py file.
 
 
 ## [0.2.6] - 2024-03-04
