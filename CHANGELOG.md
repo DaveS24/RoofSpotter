@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
+## [0.2.6] - 2024-03-04
+
+### Added
+
+- Visualization of the model's predictions in the visualize.py file.
+    - display_sample() function to display a sample of the dataset (image, mask, and overlay).
+    - display_feature_maps() function to display the feature maps of the backbone.
+
+### Removed
+
+- Removed the 'data_tests.ipynb' file from the project's notebooks folder due to merging the tests into the 'pipeline_tests.ipynb' file.
+
+
 ## [0.2.5] - 2024-03-02
 
 ### Added

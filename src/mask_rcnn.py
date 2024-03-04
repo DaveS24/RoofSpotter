@@ -11,11 +11,15 @@ from utils import Config
 class MaskRCNN:
     def __init__(self, config=Config()):
         self.config = config
-        self.backbone = Backbone(self.config['input_shape'], self.config['trainable_layers'])
-        self.rpn = RPN(self.backbone, self.config['input_shape'])
-        self.roi_align_layer = ROIAlignLayer(self.backbone, self.config['pool_size'], self.config['num_rois'])
-        self.classifier = Classifier(self.roi_align_layer, self.config['num_classes'])
-        self.mask_head = MaskHead(self.roi_align_layer, self.config['num_classes'])
+
+        # Initialize the components
+        self.backbone = Backbone(self.config.input_shape, self.config.trainable_layers)
+        self.rpn = RPN(self.backbone, self.config.input_shape)
+        self.roi_align_layer = ROIAlignLayer(self.backbone, self.config.pool_size, self.config.num_rois)
+        self.classifier = Classifier(self.roi_align_layer, self.config.num_classes)
+        self.mask_head = MaskHead(self.roi_align_layer, self.config.num_classes)
+
+        # Build the Mask R-CNN model
         self.model = self.build_model()
 
     def build_model(self):

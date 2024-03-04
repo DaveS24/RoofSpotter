@@ -45,3 +45,20 @@ class ROIAlignLayer:
         # Create the layer
         layer = tf.keras.Model(inputs=[feature_map_input, rois_input, rpn_proposals_input], outputs=x)
         return layer
+
+
+# TODO:
+    
+# Key Considerations and Areas for Refinement
+
+#     Bilinear Interpolation:
+#         Crucially, verify that the crop_and_resize operation is configured to use bilinear interpolation by setting the method argument to 'bilinear'. This is essential for the correct functioning of ROI Align.
+
+#     Compatibility:
+#         Double-check the output shape of your ROI Align layer. Ensure that the dimensions of the extracted ROI features match the expectations of your subsequent Mask Head component.
+
+# Recommendations
+
+#     Testing: Similar to the RPN, I'd recommend temporarily connecting your ROI Align to your other components (backbone, RPN). Pass sample images and proposed regions to validate that data flows correctly, and the output of ROI Align has the expected shape.
+
+#     Original ROIs: Consider if there's a need to separate the aligned features generated from the original ROIs and those that came from the RPN later in the pipeline. You might add logic to keep track of this if necessary.

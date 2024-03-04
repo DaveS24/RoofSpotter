@@ -104,3 +104,28 @@ class RPN:
     
     def compile_model(self, optimizer):
         self.model.compile(optimizer=optimizer, loss=self.rpn_loss)
+
+
+# TODO:
+        
+# Key Considerations and Areas for Refinement
+
+#     Anchor Mapping:
+#         Ensure the logic where you map anchors to the feature map (grid_x, grid_y) is accurate and accounts for the stride correctly. Double-check your calculations. I recommend creating a simple example scenario and verifying that the mapped anchors align with your expectations in terms of image coordinates.
+
+#     Output Formatting:
+#         Make sure the final output of your RPN (scores and boxes) is formatted in a way that's compatible with the ROI Align stage. If ROI Align expects proposals in a specific structure, adapt your outputs accordingly.
+
+#     IOU Threshold and Hyperparameters:
+#         The NMS parameters (max_output_size, iou_threshold, score_threshold) will influence the quantity and quality of proposals. Experiment with these values to see how they affect your results.
+
+#     RPN Loss Implementation:
+#         While you've defined the loss function, I don't see the actual integration into your model compilation process. You'll need a line like self.model.compile(optimizer='your_optimizer', loss=self.rpn_loss) to ensure the loss is used during training.
+
+#     Bounding Box Encoding/Decoding:
+#         Think carefully about how bounding box coordinates are represented. Are your anchors and regression outputs in the format of (x_min, y_min, x_max, y_max), (center_x, center_y, width, height), or some other format? Make sure you have the necessary logic to encode/decode bounding boxes between different representations if needed.
+
+# Recommendations
+
+#     Debugging: Add print statements or use a debugger to carefully visualize the generated anchors and proposals at different stages of the RPN. This will help you ensure things are working as expected.
+#     Data Compatibility: If you have the ROI Align implementation ready, I recommend temporarily connecting the RPN to it. Pass some sample images and make sure the data flows correctly between the components.

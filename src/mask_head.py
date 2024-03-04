@@ -33,3 +33,20 @@ class MaskHead:
     
     def compile_model(self, optimizer):
         self.layer.compile(optimizer=optimizer, loss=self.mask_loss)
+
+
+# TODO:
+        
+# Key Considerations and Areas for Refinement
+
+#     Output Resolution: Consider the desired resolution of your final mask predictions. Do you want them to match the original ROI size or a different resolution? You might need to adjust the number of upsampling or convolutional layers to achieve the correct output shape.
+
+#     Mask Selection: In Mask R-CNN, only the mask associated with the predicted class of an ROI is used during training. You'll need to add logic to:
+#         Get the predicted class for each ROI from your classifier.
+#         Select or slice the appropriate mask channel from your Mask Head's output.
+
+#     Data Compatibility: Be extra cautious about the dimensions of your masks. Ensure that the ground truth masks (y_true) fed into your loss function align with the output of your Mask Head. There might be some resizing or indexing operations needed.
+
+# Recommendations
+
+#     Debugging: Add print statements or visualizers to inspect the output of your Mask Head. Ensure the shapes align with your ground truth masks, especially after any mask selection operations.
