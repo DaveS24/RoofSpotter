@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
-## [Unreleased]
+## [0.2.8] - 2024-03-06
+
+### Changed
+
+- Structure of the rpn.py file to improve readability.
+
+### Fixed
+
+- Input dimensions of the RPN in the rpn.py file.
+- Input dimensions of the ROI Align layer in the roi_align.py file.
+- Aligned feature calculation in the roi_align.py file.
+- Output dimensions of the classifier in the classifier.py file.
+- Inputs of the mask head in the mask_head.py file.
+    (The model builds successfully!)
+
+
+## [0.2.7] - 2024-03-04
 
 ### Fixed
 

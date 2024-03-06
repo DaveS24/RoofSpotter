@@ -13,56 +13,41 @@ class MaskRCNN:
         self.config = config
 
         # Initialize the components
-        self.backbone = Backbone(self.config.input_shape, self.config.trainable_layers)
-        print("Backbone model input shape:", self.backbone.model.input_shape)
-        print("Backbone model output shape:", self.backbone.model.output_shape)
-
-        self.rpn = RPN(self.backbone, self.config.input_shape)
-        print("RPN model input shape:", self.rpn.model.input_shape)
-        print("RPN model output shape:", self.rpn.model.output_shape)
-
-        self.roi_align_layer = ROIAlignLayer(self.backbone, self.config.pool_size, self.config.num_rois)
-        print("ROI Align layer input shape:", self.roi_align_layer.layer.input_shape)
-        print("ROI Align layer output shape:", self.roi_align_layer.layer.output_shape)
-
+        self.backbone = Backbone(self.config.image_shape, self.config.trainable_layers)
+        self.rpn = RPN(self.backbone)
+        self.roi_align_layer = ROIAlignLayer(self.backbone, self.rpn, self.config.pool_size)
         self.classifier = Classifier(self.roi_align_layer, self.config.num_classes)
-        print("Classifier model input shape:", self.classifier.layer.input_shape)
-        print("Classifier model output shape:", self.classifier.layer.output_shape)
-
         self.mask_head = MaskHead(self.roi_align_layer, self.config.num_classes)
-        print("Mask head model input shape:", self.mask_head.layer.input_shape)
-        print("Mask head model output shape:", self.mask_head.layer.output_shape)
 
         # Build the Mask R-CNN model
         self.model = self.build_model()
 
     def build_model(self):
         # Get the input image
-        input_image = tf.keras.layers.Input(shape=self.config['input_shape'])
+        input_image = tf.keras.layers.Input(shape=self.config.image_shape, name='input_image')
 
         # Get the feature map from the backbone
-        feature_map = self.backbone(input_image)
+        feature_map = self.backbone.model(input_image)
 
         # Get the ROIs from the RPN
-        rois = self.rpn(feature_map)
+        roi_scores, roi_boxes = self.rpn.model(feature_map)
 
         # Get the ROI-aligned feature maps from the ROI Align layer
-        roi_aligned = self.roi_align_layer([feature_map, rois])
+        rois_aligned = self.roi_align_layer.layer([feature_map, roi_boxes])
 
         # Get the class scores and bounding box coordinates from the classifier
-        class_scores, bbox = self.classifier(roi_aligned)
+        class_scores, bbox = self.classifier.layer(rois_aligned)
 
         # Get the binary masks from the mask head
-        masks = self.mask_head(roi_aligned)
+        masks = self.mask_head.layer(rois_aligned)
 
-        # Create the model
-        model = tf.keras.Model(inputs=input_image, outputs=[rois, class_scores, bbox, masks])
+        model = tf.keras.Model(inputs=input_image, outputs=[roi_scores, roi_boxes, class_scores, bbox, masks], name='Mask_RCNN')
         return model
     
     def compile_model(self):
-        self.rpn.compile_model(self.config['rpn_optimizer'])
-        self.classifier.compile_model(self.config['classifier_optimizer'])
-        self.mask_head.compile_model(self.config['mask_head_optimizer'])
+        self.rpn.compile_model(self.config.rpn_optimizer)
+        self.classifier.compile_model(self.config.classifier_optimizer)
+        self.mask_head.compile_model(self.config.mask_head_optimizer)
 
 
 # TODO:
