@@ -3,12 +3,29 @@ import numpy as np
 
 class Config:
     def __init__(self):
+        # General
         self.image_shape = (250, 250, 3)
-        self.trainable_layers = 3
-        self.pool_size = (7, 7)
         self.num_classes = 2
+
+        # Backbone
+        self.backbone_weights = 'imagenet'
+        self.backbone_trainable_layers = 3
+
+        # RPN
         self.rpn_optimizer = 'adam'
+
+        # ROI Align
+        self.roi_align_pool_size = (7, 7)
+
+        # Classifier
+        self.classifier_dense_units = 1024
         self.classifier_optimizer = 'adam'
+
+        # Mask Head
+        self.mask_head_conv_filters = 256
+        self.mask_head_conv_kernel_size = (3, 3)
+        self.mask_head_upsample_filters = 256
+        self.mask_head_upsample_kernel_size = (2, 2)
         self.mask_head_optimizer = 'adam'
 
 

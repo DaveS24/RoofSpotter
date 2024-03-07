@@ -4,8 +4,10 @@ from utils import AnchorGenerator
 
 
 class RPN:
-    def __init__(self, backbone, name='RPN'):
+    def __init__(self, config, backbone, name='RPN'):
+        self.config = config
         self.backbone = backbone
+        
         self.anchors = AnchorGenerator.generate_anchors()
         self.num_anchors = len(self.anchors)
         self.model = self.build_model()

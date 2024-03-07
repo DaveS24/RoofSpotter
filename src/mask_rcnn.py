@@ -9,15 +9,15 @@ from utils import Config
 
 
 class MaskRCNN:
-    def __init__(self, config=Config()):
-        self.config = config
+    def __init__(self):
+        self.config = Config()
 
         # Initialize the components
-        self.backbone = Backbone(self.config.image_shape, self.config.trainable_layers)
-        self.rpn = RPN(self.backbone)
-        self.roi_align_layer = ROIAlignLayer(self.backbone, self.rpn, self.config.pool_size)
-        self.classifier = Classifier(self.roi_align_layer, self.config.num_classes)
-        self.mask_head = MaskHead(self.roi_align_layer, self.config.num_classes)
+        self.backbone = Backbone(self.config)
+        self.rpn = RPN(self.config, self.backbone)
+        self.roi_align_layer = ROIAlignLayer(self.config, self.backbone, self.rpn)
+        self.classifier = Classifier(self.config, self.roi_align_layer)
+        self.mask_head = MaskHead(self.config, self.roi_align_layer)
 
         # Build the Mask R-CNN model
         self.model = self.build_model()
@@ -45,9 +45,9 @@ class MaskRCNN:
         return model
     
     def compile_model(self):
-        self.rpn.compile_model(self.config.rpn_optimizer)
-        self.classifier.compile_model(self.config.classifier_optimizer)
-        self.mask_head.compile_model(self.config.mask_head_optimizer)
+        self.rpn.compile_model()
+        self.classifier.compile_model()
+        self.mask_head.compile_model()
 
 
 # TODO:

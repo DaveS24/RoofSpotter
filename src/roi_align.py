@@ -2,10 +2,11 @@ import tensorflow as tf
 
 
 class ROIAlignLayer:
-    def __init__(self, backbone, rpn, pool_size, name='ROI_Align'):
+    def __init__(self, config, backbone, rpn, name='ROI_Align'):
+        self.config = config
         self.backbone = backbone
         self.rpn = rpn
-        self.pool_size = pool_size
+
         self.layer = self.build_layer()
         self.layer._name = name
 
@@ -22,7 +23,7 @@ class ROIAlignLayer:
                                               self.backbone.model.input_shape[2]], dtype=tf.float32)
 
         # Use crop_and_resize to perform the ROI Align operation
-        roi_align_features = tf.image.crop_and_resize(feature_map, normalized_rois, tf.range(tf.shape(rois)[0]), crop_size=self.pool_size)
+        roi_align_features = tf.image.crop_and_resize(feature_map, normalized_rois, tf.range(tf.shape(rois)[0]), crop_size=self.config.roi_align_pool_size)
 
         layer = tf.keras.Model(inputs=[feature_map, rois], outputs=roi_align_features)
         return layer
