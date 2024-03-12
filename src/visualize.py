@@ -7,16 +7,22 @@ class Visualizer:
     def display_sample(image, mask):
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-        # Plot the original image
-        axes[0].imshow(image)
+        # Add the mean pixel value back to each pixel and convert to uint8
+        image_display = image + [103.939, 116.779, 123.68]
+        image_display = np.clip(image_display, 0, 255).astype('uint8')
+
+        # Convert the images back from BGR to RGB
+        image_display = image_display[..., ::-1]
+
+        axes[0].imshow(image_display)
         axes[0].set_title('Original Image')
 
         # Plot the original mask
-        axes[1].imshow(mask)
+        axes[1].imshow(mask, cmap='gray')
         axes[1].set_title('Original Mask')
 
         # Overlay the mask on the image
-        overlay = np.where(mask[:, :, :3] > 0, [1, 1, 1], image)
+        overlay = np.where(mask[:, :, :3] > 0, [255, 255, 255], image_display)
         axes[2].imshow(overlay)
 
         # Remove axis labels
@@ -26,20 +32,13 @@ class Visualizer:
         plt.show()
 
     @staticmethod
-    def display_feature_maps(backbone, image):
-        # Get the feature maps from the backbone
-        feature_maps = backbone.model.predict(np.expand_dims(image, axis=0))[0]
+    def display_avg_feature_map(feature_maps):
+        averaged_feature_map = np.mean(feature_maps, axis=-1)
 
-        # Get the number of feature maps
-        num_feature_maps = feature_maps.shape[-1]
-
-        # Create a grid of images
-        fig, axes = plt.subplots((num_feature_maps + 15) // 16, 16, figsize=(15, 15))
-
-        # Plot each feature map
-        for i, ax in enumerate(axes.flat):
-            if i < num_feature_maps:
-                ax.imshow(feature_maps[0, :, :, i], cmap='viridis')
-            ax.axis('off')
-
+        plt.imshow(averaged_feature_map[0], cmap='gray')
+        plt.axis('off')
         plt.show()
+
+    @staticmethod
+    def display_rois(image, roi_scores, roi_boxes):
+        pass

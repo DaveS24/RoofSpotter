@@ -4,7 +4,7 @@ import tensorflow as tf
 class Backbone:
     def __init__(self, config, name='Backbone'):
         self.config = config
-        
+
         self.model = self.build_model()
         self.model._name = name
 
@@ -18,7 +18,6 @@ class Backbone:
         for layer in resnet50.layers[:-self.config.backbone_trainable_layers]:
             layer.trainable = False
 
-        # Create a new model with the desired input and output
         model = tf.keras.Model(inputs=resnet50.inputs, outputs=resnet50.output)
         return model
     

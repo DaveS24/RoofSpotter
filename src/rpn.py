@@ -7,112 +7,76 @@ class RPN:
     def __init__(self, config, backbone, name='RPN'):
         self.config = config
         self.backbone = backbone
-        
-        self.anchors = AnchorGenerator.generate_anchors()
-        self.num_anchors = len(self.anchors)
+
         self.model = self.build_model()
         self.model._name = name
 
     def build_model(self):
         # Get the feature map from the backbone
-        feature_map = self.backbone.model.output
-        shape = tf.shape(feature_map)
+        feature_maps = self.backbone.model.output
+        feature_maps_shape = feature_maps.shape
 
-        # Apply a 3x3 convolutional layer
-        x = tf.keras.layers.Conv2D(512, (3, 3), padding='same', activation='relu', kernel_initializer='normal', name='rpn_conv')(feature_map)
-        x = tf.keras.layers.BatchNormalization()(x)
+        num_anchors = len(self.config.anchor_scales) * len(self.config.anchor_ratios)
 
-        # Classification output - 2 per anchor (objectness score)
-        x_class = tf.keras.layers.Conv2D(self.num_anchors * 2, (1, 1), activation='sigmoid', kernel_initializer='uniform', name='rpn_out_class')(x)
+        # Apply a convolutional layer to the feature map
+        conv_layer = tf.keras.layers.Conv2D(self.config.rpn_conv_filters,
+                                            self.config.rpn_conv_kernel_size,
+                                            padding='same', activation='relu')(feature_maps)
 
-        # Regression output - 4 per anchor (bounding box coordinates)
-        x_regr = tf.keras.layers.Conv2D(self.num_anchors * 4, (1, 1), activation='linear', kernel_initializer='zero', name='rpn_out_regr')(x)
+        # Apply a 1x1 convolutional layer to determine whether each anchor contains an object or not
+        roi_scores = tf.keras.layers.Conv2D(num_anchors * 2, (1, 1), activation='sigmoid')(conv_layer)
 
-        # Generate a grid of points in the feature map coordinates
-        grid_y, grid_x = tf.meshgrid(tf.range(shape[0]), tf.range(shape[1]), indexing='ij')
+        # Apply a 1x1 convolutional layer to refine the bounding box coordinates for each anchor
+        roi_boxes = tf.keras.layers.Conv2D(num_anchors * 4, (1, 1))(conv_layer)
+        
+        # Transform the roi_boxes to the absolute coordinates in the original image
+        anchors = AnchorGenerator.generate_anchors(self.config, feature_map_width=feature_maps_shape[2], feature_map_height=feature_maps_shape[1])
+        roi_boxes = ...
 
-        # Convert the grid to image coordinates and map the anchors to each point in the grid
-        anchors = self._compute_anchors(grid_y, grid_x, anchors=self.anchors, stride=shape[1])
+        # Apply Non-Maximum Suppression (NMS) to the proposed regions
+        roi_scores, roi_boxes = self._non_max_suppression(roi_scores, roi_boxes)
 
-        # Reshape the anchors and the outputs to the same shape
-        anchors, x_class, x_regr = self._reshape_outputs(anchors, x_class, x_regr)
-
-        objectness_scores, refined_anchors = self._apply_regressions(x_class, x_regr, anchors)
-        selected_boxes, selected_scores = self._non_maximum_suppression(objectness_scores, refined_anchors, max_output_size=300)
-        return tf.keras.Model(inputs=feature_map, outputs=[selected_scores, selected_boxes])
+        model = tf.keras.Model(inputs=feature_maps, outputs=[roi_scores, roi_boxes])
+        return model
     
-    @staticmethod
-    def _compute_anchors(grid_y, grid_x, anchors, stride):
-        # Convert the grid to image coordinates
-        grid_y = grid_y * stride
-        grid_x = grid_x * stride
+    def _non_max_suppression(self, roi_scores, roi_boxes):
+        roi_boxes, roi_scores = tf.image.combined_non_max_suppression(
+            boxes=tf.reshape(roi_boxes, [tf.shape(roi_boxes)[0], -1, 4]),
+            scores=tf.reshape(roi_scores, [tf.shape(roi_scores)[0], -1]),
+            max_output_size_per_class=self.config.rpn_max_proposals,
+            max_total_size=self.config.rpn_max_proposals,
+            iou_threshold=self.config.rpn_iou_threshod,
+            score_threshold=self.config.rpn_score_threshold
+        )
+        return roi_scores, roi_boxes
 
-        # Map the anchors to each point in the grid
-        # Each anchor is defined by its top-left and bottom-right corners
-        anchors = tf.stack([grid_y - anchors[:, 0] / 2,
-                            grid_x - anchors[:, 1] / 2,
-                            grid_y + anchors[:, 2] / 2,
-                            grid_x + anchors[:, 3] / 2], axis=-1)
-        return anchors
-    
-    @staticmethod
-    def _reshape_outputs(anchors, x_class, x_regr):
-        return tf.reshape(anchors, [-1, 4]), tf.reshape(x_class, [-1, 2]), tf.reshape(x_regr, [-1, 4])
-    
-    @staticmethod
-    def _apply_regressions(x_class, x_regr, anchors):
-        # Calculate objectness scores
-        objectness_scores = tf.nn.softmax(x_class)[:, 1]
 
-        anchors = tf.cast(anchors, tf.float32)
+# TODO: Solve this mess 
 
-        # Apply regression adjustments to the anchors
-        dx = x_regr[:, 0] * anchors[:, 2]
-        dy = x_regr[:, 1] * anchors[:, 3]
-        dw = tf.exp(x_regr[:, 2]) * anchors[:, 2]
-        dh = tf.exp(x_regr[:, 3]) * anchors[:, 3]
+class DecodePredictions(tf.keras.layers.Layer):
+    def __init__(self, anchors, **kwargs):
+        super(DecodePredictions, self).__init__(**kwargs)
+        self.anchors = anchors
 
-        # Compute the coordinates of the refined anchors
-        # Each anchor is defined by its top-left and bottom-right corners
-        refined_anchors = tf.stack([
-            anchors[:, 0] + dx - dw / 2,
-            anchors[:, 1] + dy - dh / 2,
-            anchors[:, 0] + dx + dw / 2,
-            anchors[:, 1] + dy + dh / 2
-        ], axis=-1)
+    def call(self, inputs):
+        roi_scores, roi_boxes = inputs
 
-        return objectness_scores, refined_anchors
-    
-    @staticmethod
-    def _non_maximum_suppression(scores, boxes, max_output_size, iou_threshold=0.5, score_threshold=0.0):
-        # Get the indices of the boxes to keep
-        indices = tf.image.non_max_suppression(boxes, scores, max_output_size, iou_threshold, score_threshold)
+        # Convert anchors to the center-width-height format
+        anchor_x = (self.anchors[:, 2] + self.anchors[:, 0]) / 2
+        anchor_y = (self.anchors[:, 3] + self.anchors[:, 1]) / 2
+        anchor_w = self.anchors[:, 2] - self.anchors[:, 0]
+        anchor_h = self.anchors[:, 3] - self.anchors[:, 1]
 
-        # Select the boxes and scores
-        selected_boxes = tf.gather(boxes, indices)
-        selected_scores = tf.gather(scores, indices)
+        # Apply the predicted offsets to the anchors
+        roi_x = roi_boxes[..., 0] * anchor_w + anchor_x
+        roi_y = roi_boxes[..., 1] * anchor_h + anchor_y
+        roi_w = tf.exp(roi_boxes[..., 2]) * anchor_w
+        roi_h = tf.exp(roi_boxes[..., 3]) * anchor_h
 
-        return selected_boxes, selected_scores
-    
-    def compile_model(self, optimizer):
-        self.model.compile(optimizer=optimizer, loss=self.rpn_loss)
+        # Convert back to the top-left, bottom-right format
+        roi_boxes = tf.stack([roi_x - roi_w / 2,
+                              roi_y - roi_h / 2,
+                              roi_x + roi_w / 2,
+                              roi_y + roi_h / 2], axis=-1)
 
-    @classmethod
-    def rpn_loss(cls, y_true_class, y_true_regr, y_pred_class, y_pred_regr):
-        # Classification loss
-        class_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true_class, logits=y_pred_class))
-
-        # Regression loss
-        regr_loss = tf.reduce_mean(cls._smooth_l1_loss(y_true_regr, y_pred_regr))
-
-        # Total loss
-        total_loss = class_loss + regr_loss
-
-        return total_loss
-    
-    @staticmethod
-    def _smooth_l1_loss(y_true, y_pred):
-        abs_loss = tf.abs(y_true - y_pred)
-        sq_loss = 0.5 * (y_true - y_pred)**2
-        mask = tf.cast(tf.less(abs_loss, 1.0), 'float32')
-        return mask * sq_loss + (1-mask) * (abs_loss - 0.5)    
+        return [roi_scores, roi_boxes]

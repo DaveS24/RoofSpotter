@@ -25,7 +25,6 @@ class MaskHead:
                                             strides=2, activation='relu')(x)
         x = tf.keras.layers.Conv2D(self.config.num_classes, (1, 1), activation='sigmoid')(x)
 
-        # Create the layer
         layer = tf.keras.Model(inputs=roi_aligned, outputs=x)
         return layer
     

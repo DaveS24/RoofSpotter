@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 
 class Config:
@@ -7,11 +8,21 @@ class Config:
         self.image_shape = (250, 250, 3)
         self.num_classes = 2
 
+        # Utils
+        self.anchor_base_size = 8
+        self.anchor_ratios = [0.5, 0.75, 1, 2]
+        self.anchor_scales = [1, 2, 4, 8]
+
         # Backbone
         self.backbone_weights = 'imagenet'
         self.backbone_trainable_layers = 3
 
         # RPN
+        self.rpn_conv_filters = 512
+        self.rpn_conv_kernel_size = (3, 3)
+        self.rpn_max_proposals = 100
+        self.rpn_iou_threshod = 0.7
+        self.rpn_score_threshold = 0.5
         self.rpn_optimizer = 'adam'
 
         # ROI Align
@@ -31,11 +42,28 @@ class Config:
 
 class AnchorGenerator:
     @classmethod
-    def generate_anchors(cls, base_size=8, ratios=[1, 2], scales=[1, 2, 4, 8]):
-        base_anchor = np.array([1, 1, base_size, base_size]) - 1
-        ratio_anchors = cls._ratio_enum(base_anchor, ratios)
-        anchors = np.vstack([cls._scale_enum(ratio_anchors[i, :], scales) for i in range(ratio_anchors.shape[0])])
-        return anchors
+    def generate_anchors(cls, config, feature_map_width, feature_map_height):
+        base_size = config.anchor_base_size
+        ratios = config.anchor_ratios
+        scales = config.anchor_scales
+
+        all_anchors = []
+
+        # Iterate over the feature map
+        for y in range(feature_map_height):
+            for x in range(feature_map_width):
+                # Generate the base anchor at the current location
+                base_anchor = np.array([x, y, x + base_size, y + base_size])
+
+                # Generate ratio anchors from the base anchor
+                ratio_anchors = cls._ratio_enum(base_anchor, ratios)
+
+                # Generate scale anchors from the ratio anchors
+                anchors = np.vstack([cls._scale_enum(ratio_anchors[i, :], scales) for i in range(ratio_anchors.shape[0])])
+                all_anchors.append(anchors)
+
+        all_anchors = np.vstack(all_anchors)
+        return tf.convert_to_tensor(all_anchors, dtype=tf.float32)
     
     @classmethod
     def _ratio_enum(cls, anchor, ratios):
@@ -65,5 +93,8 @@ class AnchorGenerator:
 
     @staticmethod
     def _make_anchors(ws, hs, x_ctr, y_ctr):
-        anchors = np.vstack([x_ctr - 0.5 * (ws - 1), y_ctr - 0.5 * (hs - 1), x_ctr + 0.5 * (ws - 1), y_ctr + 0.5 * (hs - 1)]).transpose()
+        anchors = np.vstack([x_ctr - 0.5 * (ws - 1),
+                             y_ctr - 0.5 * (hs - 1),
+                             x_ctr + 0.5 * (ws - 1),
+                             y_ctr + 0.5 * (hs - 1)]).transpose()
         return anchors

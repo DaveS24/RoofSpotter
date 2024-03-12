@@ -3,6 +3,7 @@ import os
 import random
 
 from PIL import Image
+from tensorflow.keras.applications.resnet50 import preprocess_input
 from sklearn.model_selection import train_test_split
 
 
@@ -15,11 +16,13 @@ class BavarianBuildingDataset:
 
     def load_image(self, image_file):
         img = Image.open(os.path.join(self.image_dir, image_file))
-        return np.array(img) / 255.0
+        img = preprocess_input(np.array(img))
+        return img
 
     def load_mask(self, mask_file):
         mask = Image.open(os.path.join(self.mask_dir, mask_file))
-        return np.array(mask) / 255.0
+        mask = np.array(mask) / 255.0
+        return mask
     
     def get_image_mask_pair(self, index):
         image_file = self.image_files[index]

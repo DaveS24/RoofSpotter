@@ -25,7 +25,6 @@ class Classifier:
         bbox = tf.keras.layers.Dense(self.config.num_classes * 4, activation='linear', name='bbox')(x)
         bbox = tf.keras.layers.Reshape((self.config.num_classes, 4))(bbox)
 
-        # Create the layer
         layer = tf.keras.Model(inputs=roi_aligned, outputs=[class_scores, bbox])
         return layer
     

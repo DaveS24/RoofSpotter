@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Citation of the dataset to the README.md file.
+- Visualization of the backbone's average feature map in the visualize.py file.
+- component_testing.ipynb file to the project's testing folder.
+    - A notebook to test the individual components of the pipeline.
 
 ### Changed
 
