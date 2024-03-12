@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- batch_size parameter to the Config class in the utils.py file.
+
+
+## [0.2.9] - 2024-03-12
+
+### Added
+
 - Citation of the dataset to the README.md file.
 - Visualization of the backbone's average feature map in the visualize.py file.
 - component_testing.ipynb file to the project's testing folder.

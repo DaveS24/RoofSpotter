@@ -7,6 +7,8 @@ class Config:
         # General
         self.image_shape = (250, 250, 3)
         self.num_classes = 2
+        self.batch_size = 32
+        self.model_dir = '../model/'
 
         # Utils
         self.anchor_base_size = 8

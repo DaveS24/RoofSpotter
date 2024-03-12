@@ -66,6 +66,3 @@ class BavarianBuildingDataset:
 def generator(dataset, indices, batch_size):
     for i in range(0, len(indices), batch_size):
         yield dataset.get_batch(indices[i:i + batch_size])
-
-
-# TODO: ensure that image data loaded into the backbone model is preprocessed in a manner consistent with how ResNet50 was trained on ImageNet 
