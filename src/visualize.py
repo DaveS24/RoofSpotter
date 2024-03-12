@@ -1,20 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from matplotlib.patches import Rectangle
+
 
 class Visualizer:
-    @staticmethod
-    def display_sample(image, mask):
+    @classmethod
+    def display_sample(cls, image, mask):
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-        # Add the mean pixel value back to each pixel and convert to uint8
-        image_display = image + [103.939, 116.779, 123.68]
-        image_display = np.clip(image_display, 0, 255).astype('uint8')
+        image = cls._convert_to_original_image(image)
 
-        # Convert the images back from BGR to RGB
-        image_display = image_display[..., ::-1]
-
-        axes[0].imshow(image_display)
+        axes[0].imshow(image)
         axes[0].set_title('Original Image')
 
         # Plot the original mask
@@ -22,7 +19,7 @@ class Visualizer:
         axes[1].set_title('Original Mask')
 
         # Overlay the mask on the image
-        overlay = np.where(mask[:, :, :3] > 0, [255, 255, 255], image_display)
+        overlay = np.where(mask[:, :, :3] > 0, [255, 255, 255], image)
         axes[2].imshow(overlay)
 
         # Remove axis labels
@@ -39,6 +36,29 @@ class Visualizer:
         plt.axis('off')
         plt.show()
 
+    @classmethod
+    def display_rois(cls, image, roi_boxes, roi_scores):
+        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+        image = cls._convert_to_original_image(image)
+
+        ax.imshow(image)
+
+        for box, score in zip(roi_boxes, roi_scores):
+            y1, x1, y2, x2 = box
+            p = Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='r')
+            ax.add_patch(p)
+            ax.text(x1, y1, f"{score[0]:.3f}", color='r')
+
+        ax.axis('off')
+        plt.show()
+
     @staticmethod
-    def display_rois(image, roi_scores, roi_boxes):
-        pass
+    def _convert_to_original_image(image):
+        # Add the mean pixel value back to each pixel and convert to uint8
+        image_display = image + [103.939, 116.779, 123.68]
+        image_display = np.clip(image_display, 0, 255).astype('uint8')
+
+        # Convert the images back from BGR to RGB
+        image_display = image_display[..., ::-1]
+        return image_display

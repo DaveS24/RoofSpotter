@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - batch_size parameter to the Config class in the utils.py file.
+- The clip_boxes() function to the rpn.py file to clip the bounding box coordinates to the image dimensions.
+- The remove_zero_area_boxes() function to the rpn.py file to remove the region proposals with zero area.
+- Visualization of the region proposals in the visualize.py file.
 
 
 ## [0.2.9] - 2024-03-12

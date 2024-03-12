@@ -32,12 +32,35 @@ class RPN:
 
         # Decode the bounding box regression offsets to the absolute image coordinates
         roi_boxes = AnchorGenerator.decode_boxes(roi_boxes, anchors)
+        roi_boxes = self.clip_boxes(roi_boxes)
+        roi_boxes, roi_scores = self.remove_zero_area_boxes(roi_boxes, roi_scores)
 
         # Apply Non-Maximum Suppression (NMS) to the proposed regions
         roi_boxes, roi_scores = self.non_maximum_suppression(roi_boxes, roi_scores)
 
         model = tf.keras.Model(inputs=feature_maps, outputs=[roi_boxes, roi_scores])
         return model
+    
+    def clip_boxes(self, roi_boxes):
+        image_shape = self.config.image_shape
+        x1 = tf.clip_by_value(roi_boxes[:, 0], 0, image_shape[1] - 1)
+        y1 = tf.clip_by_value(roi_boxes[:, 1], 0, image_shape[0] - 1)
+        x2 = tf.clip_by_value(roi_boxes[:, 2], 0, image_shape[1] - 1)
+        y2 = tf.clip_by_value(roi_boxes[:, 3], 0, image_shape[0] - 1)
+
+        return tf.stack([x1, y1, x2, y2], axis=1)
+    
+    def remove_zero_area_boxes(self, roi_boxes, roi_scores):
+        width = roi_boxes[:, 2] - roi_boxes[:, 0]
+        height = roi_boxes[:, 3] - roi_boxes[:, 1]
+
+        # Create a mask for boxes with non-zero width and height
+        mask = tf.logical_and(width > 0, height > 0)
+
+        roi_boxes = tf.boolean_mask(roi_boxes, mask)
+        roi_scores = tf.boolean_mask(roi_scores, mask)
+
+        return roi_boxes, roi_scores
     
     def non_maximum_suppression(self, roi_boxes, roi_scores):
         obj_scores = roi_scores[:, 0]
