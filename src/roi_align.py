@@ -14,7 +14,7 @@ class ROIAlignLayer:
         # Get the feature map from the backbone
         feature_map = self.backbone.model.output
         # Get the ROI boxes from the RPN
-        _, roi_boxes = self.rpn.model.output
+        roi_boxes, _ = self.rpn.model.output
 
         # Normalize the coordinates of the rois
         normalized_rois = roi_boxes / tf.constant([self.backbone.model.input_shape[1],

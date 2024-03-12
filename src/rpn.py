@@ -1,6 +1,5 @@
+import numpy as np
 import tensorflow as tf
-
-from utils import AnchorGenerator
 
 
 class RPN:
@@ -16,67 +15,126 @@ class RPN:
         feature_maps = self.backbone.model.output
         feature_maps_shape = feature_maps.shape
 
-        num_anchors = len(self.config.anchor_scales) * len(self.config.anchor_ratios)
+        anchors = AnchorGenerator.generate_anchors(self.config, fm_height=feature_maps_shape[1], fm_width=feature_maps_shape[2])
+        num_anchors = len(self.config.anchor_ratios) * len(self.config.anchor_scales)
 
-        # Apply a convolutional layer to the feature map
-        conv_layer = tf.keras.layers.Conv2D(self.config.rpn_conv_filters,
-                                            self.config.rpn_conv_kernel_size,
-                                            padding='same', activation='relu')(feature_maps)
+        # Reduce depth of the feature map
+        shared_layer = tf.keras.layers.Conv2D(self.config.rpn_conv_filters, (3, 3),
+                                              padding='same', activation='relu')(feature_maps)
 
-        # Apply a 1x1 convolutional layer to determine whether each anchor contains an object or not
-        roi_scores = tf.keras.layers.Conv2D(num_anchors * 2, (1, 1), activation='sigmoid')(conv_layer)
+        # Bounding box regression offsets for each anchor
+        roi_boxes = tf.keras.layers.Conv2D(num_anchors * 4, (1, 1))(shared_layer)
+        roi_boxes = tf.reshape(roi_boxes, [feature_maps_shape[1] * feature_maps_shape[2] * num_anchors, 4])
 
-        # Apply a 1x1 convolutional layer to refine the bounding box coordinates for each anchor
-        roi_boxes = tf.keras.layers.Conv2D(num_anchors * 4, (1, 1))(conv_layer)
-        
-        # Transform the roi_boxes to the absolute coordinates in the original image
-        anchors = AnchorGenerator.generate_anchors(self.config, feature_map_width=feature_maps_shape[2], feature_map_height=feature_maps_shape[1])
-        roi_boxes = ...
+        # Score whether an anchor contains an object or not
+        roi_scores = tf.keras.layers.Conv2D(num_anchors * 2, (1, 1), activation='sigmoid')(shared_layer)
+        roi_scores = tf.reshape(roi_scores, [feature_maps_shape[1] * feature_maps_shape[2] * num_anchors, 2])
+
+        # Decode the bounding box regression offsets to the absolute image coordinates
+        roi_boxes = AnchorGenerator.decode_boxes(roi_boxes, anchors)
 
         # Apply Non-Maximum Suppression (NMS) to the proposed regions
-        roi_scores, roi_boxes = self._non_max_suppression(roi_scores, roi_boxes)
+        roi_boxes, roi_scores = self.non_maximum_suppression(roi_boxes, roi_scores)
 
-        model = tf.keras.Model(inputs=feature_maps, outputs=[roi_scores, roi_boxes])
+        model = tf.keras.Model(inputs=feature_maps, outputs=[roi_boxes, roi_scores])
         return model
     
-    def _non_max_suppression(self, roi_scores, roi_boxes):
-        roi_boxes, roi_scores = tf.image.combined_non_max_suppression(
-            boxes=tf.reshape(roi_boxes, [tf.shape(roi_boxes)[0], -1, 4]),
-            scores=tf.reshape(roi_scores, [tf.shape(roi_scores)[0], -1]),
-            max_output_size_per_class=self.config.rpn_max_proposals,
-            max_total_size=self.config.rpn_max_proposals,
-            iou_threshold=self.config.rpn_iou_threshod,
-            score_threshold=self.config.rpn_score_threshold
-        )
-        return roi_scores, roi_boxes
+    def non_maximum_suppression(self, roi_boxes, roi_scores):
+        obj_scores = roi_scores[:, 0]
+        obj_scores = tf.reshape(obj_scores, [-1])
+
+        selected_indices = tf.image.non_max_suppression(roi_boxes, obj_scores,
+                                                        max_output_size=self.config.rpn_max_proposals,
+                                                        iou_threshold=self.config.rpn_iou_threshold,
+                                                        score_threshold=self.config.rpn_score_threshold)
+
+        selected_boxes = tf.gather(roi_boxes, selected_indices)
+        selected_scores = tf.gather(roi_scores, selected_indices)
+
+        return selected_boxes, selected_scores
 
 
-# TODO: Solve this mess 
+class AnchorGenerator:
+    @classmethod
+    def generate_anchors(cls, config, fm_height, fm_width):
+        '''Generates anchors in the [x1, y1, x2, y2] format for each feature map cell using the anchor base size, ratios, and scales.'''
+        base_size = config.anchor_base_size
+        ratios = config.anchor_ratios
+        scales = config.anchor_scales
 
-class DecodePredictions(tf.keras.layers.Layer):
-    def __init__(self, anchors, **kwargs):
-        super(DecodePredictions, self).__init__(**kwargs)
-        self.anchors = anchors
+        all_anchors = []
 
-    def call(self, inputs):
-        roi_scores, roi_boxes = inputs
+        # Iterate over the feature map
+        for y in range(fm_height):
+            for x in range(fm_width):
+                # Generate the base anchor at the current location
+                base_anchor = np.array([x, y, x + base_size, y + base_size])
 
-        # Convert anchors to the center-width-height format
-        anchor_x = (self.anchors[:, 2] + self.anchors[:, 0]) / 2
-        anchor_y = (self.anchors[:, 3] + self.anchors[:, 1]) / 2
-        anchor_w = self.anchors[:, 2] - self.anchors[:, 0]
-        anchor_h = self.anchors[:, 3] - self.anchors[:, 1]
+                # Generate ratio anchors from the base anchor
+                ratio_anchors = cls._ratio_enum(base_anchor, ratios)
 
-        # Apply the predicted offsets to the anchors
-        roi_x = roi_boxes[..., 0] * anchor_w + anchor_x
-        roi_y = roi_boxes[..., 1] * anchor_h + anchor_y
-        roi_w = tf.exp(roi_boxes[..., 2]) * anchor_w
-        roi_h = tf.exp(roi_boxes[..., 3]) * anchor_h
+                # Generate scale anchors from the ratio anchors
+                anchors = np.vstack([cls._scale_enum(ratio_anchors[i, :], scales) for i in range(ratio_anchors.shape[0])])
+                all_anchors.append(anchors)
 
-        # Convert back to the top-left, bottom-right format
-        roi_boxes = tf.stack([roi_x - roi_w / 2,
-                              roi_y - roi_h / 2,
-                              roi_x + roi_w / 2,
-                              roi_y + roi_h / 2], axis=-1)
+        all_anchors = np.vstack(all_anchors)
+        return tf.convert_to_tensor(all_anchors, dtype=tf.float32)
+    
+    @classmethod
+    def _ratio_enum(cls, anchor, ratios):
+        w, h, x_ctr, y_ctr = cls._ctr_and_size(anchor)
+        size = w * h
+        size_ratios = size / ratios
+        ws = np.round(np.sqrt(size_ratios))
+        hs = np.round(ws * ratios)
+        anchors = cls._make_anchors(ws, hs, x_ctr, y_ctr)
+        return anchors
 
-        return [roi_scores, roi_boxes]
+    @classmethod
+    def _scale_enum(cls, anchor, scales):
+        w, h, x_ctr, y_ctr = cls._ctr_and_size(anchor)
+        ws = np.array(w) * scales
+        hs = np.array(h) * scales
+        anchors = cls._make_anchors(ws, hs, x_ctr, y_ctr)
+        return anchors
+    
+    @staticmethod
+    def _ctr_and_size(anchor):
+        w = anchor[2] - anchor[0] + 1
+        h = anchor[3] - anchor[1] + 1
+        x_ctr = anchor[0] + 0.5 * (w - 1)
+        y_ctr = anchor[1] + 0.5 * (h - 1)
+        return w, h, x_ctr, y_ctr
+
+    @staticmethod
+    def _make_anchors(ws, hs, x_ctr, y_ctr):
+        anchors = np.vstack([x_ctr - 0.5 * (ws - 1),
+                             y_ctr - 0.5 * (hs - 1),
+                             x_ctr + 0.5 * (ws - 1),
+                             y_ctr + 0.5 * (hs - 1)]).transpose()
+        return anchors
+    
+    @classmethod
+    def decode_boxes(cls, roi_boxes, anchors):
+        # Compute the width, height, and center of the anchor boxes
+        w = anchors[:, 2] - anchors[:, 0]
+        h = anchors[:, 3] - anchors[:, 1]
+        x_center = anchors[:, 0] + 0.5 * w
+        y_center = anchors[:, 1] + 0.5 * h
+
+        # Apply the predicted offsets
+        x_center += roi_boxes[:, 0] * w
+        y_center += roi_boxes[:, 1] * h
+        w *= tf.exp(roi_boxes[:, 2])
+        h *= tf.exp(roi_boxes[:, 3])
+
+        # Convert the width, height, and center to the top-left and bottom-right coordinates
+        x1 = x_center - 0.5 * w
+        y1 = y_center - 0.5 * h
+        x2 = x_center + 0.5 * w
+        y2 = y_center + 0.5 * h
+
+        # Concatenate the coordinates to get the proposed regions
+        proposed_regions = tf.stack([x1, y1, x2, y2], axis=1)
+
+        return proposed_regions

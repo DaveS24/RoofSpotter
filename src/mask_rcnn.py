@@ -30,7 +30,7 @@ class MaskRCNN:
         feature_maps = self.backbone.model(input_image)
 
         # Get the ROIs from the RPN
-        roi_scores, roi_boxes = self.rpn.model(feature_maps)
+        roi_boxes, roi_scores = self.rpn.model(feature_maps)
 
         # Get the ROI-aligned feature maps from the ROI Align layer
         rois_aligned = self.roi_align_layer.layer([feature_maps, roi_boxes])

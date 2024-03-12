@@ -18,6 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - The wording of the Changelog to be more consistent.
 - Refactored the `Config` class to include more settings that are used throughout the components, replacing previously hard-coded values.
+- Moved the AnchorGenerator class to the RPN.py file as it is only used there.
+
+### Fixed
+
+- The decode_boxes() function in the rpn.py file to correctly decode the bounding box predictions.
 
 
 ## [0.2.8] - 2024-03-06
