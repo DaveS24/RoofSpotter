@@ -1,7 +1,11 @@
+import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 
 from matplotlib.patches import Rectangle
+
+
+DEFAULT_COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 
 
 class Visualizer:
@@ -44,18 +48,21 @@ class Visualizer:
 
         ax.imshow(image)
 
-        for box, score in zip(roi_boxes, roi_scores):
+        colors = itertools.cycle(DEFAULT_COLORS)
+
+        for box, score, color in zip(roi_boxes, roi_scores, colors):
             y1, x1, y2, x2 = box
-            p = Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='r')
+            p = Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor=color)
             ax.add_patch(p)
-            ax.text(x1, y1, f"{score[0]:.3f}", color='r')
+            ax.text(x1, y1, f"{score[0]:.3f}", color=color)
 
         ax.axis('off')
         plt.show()
 
     @staticmethod
     def _convert_to_original_image(image):
-        # Add the mean pixel value back to each pixel and convert to uint8
+        '''Convert the image from BGR to RGB and add the mean pixel value back to each pixel.
+        This is done to reverse the preprocessing steps that were applied to the image.'''
         image_display = image + [103.939, 116.779, 123.68]
         image_display = np.clip(image_display, 0, 255).astype('uint8')
 
