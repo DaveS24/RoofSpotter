@@ -11,9 +11,8 @@ class Config:
         self.model_dir = '../model/'
 
         # Utils
-        self.anchor_base_size = 8
-        self.anchor_ratios = [0.5, 0.75, 1, 2]
-        self.anchor_scales = [1, 2, 4, 8]
+        self.anchor_scales = [0.5, 1, 1.5, 2] # Due to ResNet50's downsampling by 250 / 8 = 31.25 -> [16, 32, 48, 64] px in the image space
+        self.anchor_ratios = [1, 1.5, 2]
 
         # Backbone
         self.backbone_weights = 'imagenet'
@@ -37,3 +36,7 @@ class Config:
         self.mask_head_conv_filters = 256
         self.mask_head_upsample_filters = 256
         self.mask_head_optimizer = 'adam'
+
+    def info(self):
+        for attr, value in self.__dict__.items():
+            print(f"{attr}: {value}")

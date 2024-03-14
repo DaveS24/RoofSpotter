@@ -1,8 +1,5 @@
-import itertools
 import numpy as np
 import matplotlib.pyplot as plt
-
-from matplotlib.patches import Rectangle
 
 
 DEFAULT_COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
@@ -38,25 +35,6 @@ class Visualizer:
 
         plt.imshow(averaged_feature_map[0], cmap='gray')
         plt.axis('off')
-        plt.show()
-
-    @classmethod
-    def display_rois(cls, image, roi_boxes, roi_scores):
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-
-        image = cls._convert_to_original_image(image)
-
-        ax.imshow(image)
-
-        colors = itertools.cycle(DEFAULT_COLORS)
-
-        for box, score, color in zip(roi_boxes, roi_scores, colors):
-            y1, x1, y2, x2 = box
-            p = Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor=color)
-            ax.add_patch(p)
-            ax.text(x1, y1, f"{score[0]:.3f}", color=color)
-
-        ax.axis('off')
         plt.show()
 
     @staticmethod

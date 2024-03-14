@@ -10,9 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - batch_size parameter to the Config class in the utils.py file.
-- The clip_boxes() function to the rpn.py file to clip the bounding box coordinates to the image dimensions.
-- The remove_zero_area_boxes() function to the rpn.py file to remove the region proposals with zero area.
-- Visualization of the region proposals in the visualize.py file.
+- [ongoing!] The display_rois() function to visualize the RPN's predicted rois in the visualize.py file.
+
+### Changed
+
+- The structure of the RPN to work more efficiently and to be more readable.
+- The anchor generation to be more efficient and to work with the new RPN.
+
+### Fixed
+
+- The scales and ratios of the anchors to be correctly sized for the feature maps.
+- [ongoing!] The decode_offsets() function in the rpn.py file to correctly decode the bounding box predictions.
 
 
 ## [0.2.9] - 2024-03-12

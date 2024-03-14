@@ -19,7 +19,6 @@ class MaskRCNN:
         self.classifier = Classifier(self.config, self.roi_align_layer)
         self.mask_head = MaskHead(self.config, self.roi_align_layer)
 
-        # Build the Mask R-CNN model
         self.model = self.build_model()
 
     def build_model(self):
@@ -30,31 +29,25 @@ class MaskRCNN:
         feature_maps = self.backbone.model(input_image)
 
         # Get the ROIs from the RPN
-        roi_boxes, roi_scores = self.rpn.model(feature_maps)
+        roi_boxes = self.rpn.model(feature_maps)
 
-        # Get the ROI-aligned feature maps from the ROI Align layer
-        rois_aligned = self.roi_align_layer.layer([feature_maps, roi_boxes])
+        # Get the aligned ROIs from the ROI Align layer
+        aligned_rois = self.roi_align_layer.model([feature_maps, roi_boxes])
 
         # Get the class scores and bounding box coordinates from the classifier
-        class_scores, bbox = self.classifier.layer(rois_aligned)
+        class_scores, bbox = self.classifier.layer(aligned_rois)
 
         # Get the binary masks from the mask head
-        masks = self.mask_head.layer(rois_aligned)
+        binary_masks = self.mask_head.model(aligned_rois)
 
-        model = tf.keras.Model(inputs=input_image, outputs=[roi_scores, roi_boxes, rois_aligned, class_scores, bbox, masks], name='Mask_RCNN')
+        model = tf.keras.Model(inputs=input_image, outputs=[roi_boxes, aligned_rois, class_scores, bbox, binary_masks], name='Mask_RCNN')
         return model
-    
-    def compile_model(self):
-        self.rpn.compile_model()
-        self.classifier.compile_model()
-        self.mask_head.compile_model()
-
 
 # TODO:
     
 # The Road to a Working Model
 
-#     Complete the Components:  Carefully revisit our earlier discussions and fill in the missing pieces within each of your component files.
+#     Complete the Components
 
 #     Training Configuration:
 #         Decide on your dataset loading, data splitting, and augmentation procedures.
