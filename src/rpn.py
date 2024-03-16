@@ -83,7 +83,10 @@ class RPN:
         return roi_boxes
     
     def non_maximum_suppression(self, boxes, roi_scores):
-        reshaped_boxes = tf.reshape(boxes, (-1, 4)) # Shape: (None, 4096, 4) -> (None, 4)
+        # NMS expects the boxes to be in the format (y1, x1, y2, x2)
+        reshaped_boxes = tf.stack([boxes[:, :, 1], boxes[:, :, 0], boxes[:, :, 3], boxes[:, :, 2]], axis=-1)
+
+        reshaped_boxes = tf.reshape(reshaped_boxes, (-1, 4)) # Shape: (None, 4096, 4) -> (None, 4)
         reshaped_scores = tf.reshape(roi_scores, (-1, 2)) # Shape: (None, 8, 8, 128) -> (None, 2)
         reshaped_scores = reshaped_scores[:, 0] # Only use true scores
 

@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The scales and ratios of the anchors to be correctly sized for the feature maps.
 - The NMS to work correctly with the shape of the rois.
 - The decode_offsets() function in the rpn.py file to correctly decode the bounding box predictions.
+- The NMS to receive the coordinates in the format (y1, x1, y2, x2) in the rpn.py file.
 
 
 ## [0.2.9] - 2024-03-12
