@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - The structure of the RPN to work more efficiently and to be more readable.
 - The anchor generation to be more efficient and to work with the new RPN.
+- Order of operations to decode first and then apply NMS in the rpn.py file.
 
 ### Fixed
 

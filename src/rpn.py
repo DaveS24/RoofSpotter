@@ -30,11 +30,11 @@ class RPN:
         # (roof_score, no_roof_score), (roof_score, no_roof_score) ... for all 64 anchors, shape: (None, 8, 8, 128)
         roi_scores = tf.keras.layers.Conv2D(num_anchors * 2, (1, 1), activation='sigmoid')(shared_layer)
 
-        # Apply Non-Maximum Suppression (NMS) to the proposed offsets
-        filtered_anchor_offsets = self.non_maximum_suppression(pred_anchor_offsets, roi_scores)
-
         # Transform the predicted offsets to absolute coordinates in the feature maps
-        roi_boxes = self.decode_offsets(filtered_anchor_offsets, anchors, feature_maps_shape)
+        pred_decoded = self.decode_offsets(pred_anchor_offsets, anchors, feature_maps_shape)
+
+        # Apply Non-Maximum Suppression (NMS) to the proposed coordinates
+        roi_boxes = self.non_maximum_suppression(pred_decoded, roi_scores)
 
         model = tf.keras.Model(inputs=feature_maps, outputs=roi_boxes)
         return model
@@ -48,20 +48,6 @@ class RPN:
 
         anchors = np.array([[width, height] for width in lengths for height in lengths])
         return anchors
-    
-    def non_maximum_suppression(self, offsets, roi_scores):
-        reshaped_offsets = tf.reshape(offsets, (-1, 4)) # (None, 8, 8, 256) -> (None * 64, 4)
-        reshaped_scores = tf.reshape(roi_scores, (-1, 2)) # (None, 8, 8, 128) -> (None * 64, 2)
-        reshaped_scores = reshaped_scores[:, 0] # Only use true scores
-
-        selected_indices = tf.image.non_max_suppression(reshaped_offsets, reshaped_scores,
-                                                        max_output_size=self.config.rpn_max_proposals,
-                                                        iou_threshold=self.config.rpn_iou_threshold,
-                                                        score_threshold=self.config.rpn_score_threshold)
-
-        filtered_offsets = tf.gather(reshaped_offsets, selected_indices)
-        filtered_offsets = tf.reshape(filtered_offsets, tf.shape(offsets)) # Reshape back to original shape
-        return filtered_offsets
     
     def decode_offsets(self, offsets, anchors, fm_shape):
         anchor_w = anchors[:, 0]
@@ -93,5 +79,18 @@ class RPN:
             col_boxes = tf.concat(col_boxes, axis=1)  # Shape: (None, 8*64, 4)
             columns.append(col_boxes)
 
-        roi_boxes = tf.concat(columns, axis=1)  # Shape: (None, 8*8*64, 4)             
+        roi_boxes = tf.concat(columns, axis=1)  # Shape: (None, 8*8*64, 4)            
         return roi_boxes
+    
+    def non_maximum_suppression(self, boxes, roi_scores):
+        reshaped_boxes = tf.reshape(boxes, (-1, 4)) # Shape: (None, 4096, 4) -> (None, 4)
+        reshaped_scores = tf.reshape(roi_scores, (-1, 2)) # Shape: (None, 8, 8, 128) -> (None, 2)
+        reshaped_scores = reshaped_scores[:, 0] # Only use true scores
+
+        selected_indices = tf.image.non_max_suppression(reshaped_boxes, reshaped_scores,
+                                                        max_output_size=self.config.rpn_max_proposals,
+                                                        iou_threshold=self.config.rpn_iou_threshold,
+                                                        score_threshold=self.config.rpn_score_threshold)
+        
+        selected_boxes = tf.gather(reshaped_boxes, selected_indices) # Shape: (None, 4)
+        return selected_boxes
