@@ -5,12 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
-## [Unreleased]
+## [0.2.10] - 2024-03-16
 
 ### Added
 
 - batch_size parameter to the Config class in the utils.py file.
-- [ongoing!] The display_rois() function to visualize the RPN's predicted rois in the visualize.py file.
+- The display_rois() function to visualize the RPN's predicted rois on both the image and feature map in the visualize.py file.
+- Set random seeds of the numpy, tensorflow, and random modules to 0 in the mask_rcnn.py file.
 
 ### Changed
 

@@ -31,7 +31,7 @@ class RPN:
         roi_scores = tf.keras.layers.Conv2D(num_anchors * 2, (1, 1), activation='sigmoid')(shared_layer)
 
         # Transform the predicted offsets to absolute coordinates in the feature maps
-        pred_decoded = self.decode_offsets(pred_anchor_offsets, anchors, feature_maps_shape)
+        pred_decoded = self.decode_offsets(pred_anchor_offsets, anchors, feature_maps_shape)    # TODO: Decide if the coordinates should be clipped to the feature map shape
 
         # Apply Non-Maximum Suppression (NMS) to the proposed coordinates
         roi_boxes = self.non_maximum_suppression(pred_decoded, roi_scores)
@@ -96,4 +96,7 @@ class RPN:
                                                         score_threshold=self.config.rpn_score_threshold)
         
         selected_boxes = tf.gather(reshaped_boxes, selected_indices) # Shape: (None, 4)
+
+        # Reformat the boxes to the format (x1, y1, x2, y2)
+        selected_boxes = tf.stack([selected_boxes[:, 1], selected_boxes[:, 0], selected_boxes[:, 3], selected_boxes[:, 2]], axis=-1)
         return selected_boxes

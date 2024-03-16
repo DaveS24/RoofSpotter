@@ -1,3 +1,5 @@
+import numpy as np
+import random
 import tensorflow as tf
 
 from backbone import Backbone
@@ -6,6 +8,10 @@ from roi_align import ROIAlignLayer
 from classifier import Classifier
 from mask_head import MaskHead
 from utils import Config
+
+np.random.seed(0)
+random.seed(0)
+tf.random.set_seed(0)
 
 
 class MaskRCNN:
