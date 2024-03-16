@@ -1,7 +1,3 @@
-import numpy as np
-import tensorflow as tf
-
-
 class Config:
     def __init__(self):
         # General

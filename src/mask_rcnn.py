@@ -21,9 +21,9 @@ class MaskRCNN:
         # Initialize the components
         self.backbone = Backbone(self.config)
         self.rpn = RPN(self.config, self.backbone)
-        self.roi_align_layer = ROIAlignLayer(self.config, self.backbone, self.rpn)
-        self.classifier = Classifier(self.config, self.roi_align_layer)
-        self.mask_head = MaskHead(self.config, self.roi_align_layer)
+        self.roi_align = ROIAlignLayer(self.config, self.backbone, self.rpn)
+        self.classifier = Classifier(self.config, self.roi_align)
+        self.mask_head = MaskHead(self.config, self.roi_align)
 
         self.model = self.build_model()
 
@@ -38,15 +38,15 @@ class MaskRCNN:
         roi_boxes = self.rpn.model(feature_maps)
 
         # Get the aligned ROIs from the ROI Align layer
-        aligned_rois = self.roi_align_layer.model([feature_maps, roi_boxes])
+        aligned_rois = self.roi_align.model([feature_maps, roi_boxes])
 
         # Get the class scores and bounding box coordinates from the classifier
-        class_scores, bbox = self.classifier.layer(aligned_rois)
+        class_scores, bbox = self.classifier.model(aligned_rois)
 
         # Get the binary masks from the mask head
         binary_masks = self.mask_head.model(aligned_rois)
 
-        model = tf.keras.Model(inputs=input_image, outputs=[roi_boxes, aligned_rois, class_scores, bbox, binary_masks], name='Mask_RCNN')
+        model = tf.keras.Model(inputs=input_image, outputs=[class_scores, bbox, binary_masks], name='Mask_RCNN')
         return model
 
 # TODO:

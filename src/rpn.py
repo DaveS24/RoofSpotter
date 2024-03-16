@@ -15,7 +15,7 @@ class RPN:
         feature_maps = self.backbone.model.output
         feature_maps_shape = feature_maps.shape
 
-        anchors = self.generate_anchors() # [width, height], shape: (64, 2)
+        anchors = self.generate_anchors() # [width, height], Shape: (64, 2)
         num_anchors = anchors.shape[0]
 
         # Reduce depth of the feature map
@@ -23,18 +23,21 @@ class RPN:
                                               padding='same', activation='relu')(feature_maps)
 
         # Bounding box regression offsets for each anchor
-        # (dx, dy, dw, dh), (dx, dy, dw, dh), ... for all 64 anchors, shape: (None, 8, 8, 256)
+        # (dx, dy, dw, dh), (dx, dy, dw, dh), ... for all 64 anchors, Shape: (None, 8, 8, 256)
         pred_anchor_offsets = tf.keras.layers.Conv2D(num_anchors * 4, (1, 1))(shared_layer)
 
         # Score whether an anchor contains an object or not
-        # (roof_score, no_roof_score), (roof_score, no_roof_score) ... for all 64 anchors, shape: (None, 8, 8, 128)
-        roi_scores = tf.keras.layers.Conv2D(num_anchors * 2, (1, 1), activation='sigmoid')(shared_layer)
+        # (obj_score), (obj_score) ... for all 64 anchors, Shape: (None, 8, 8, 64)
+        roi_scores = tf.keras.layers.Conv2D(num_anchors, (1, 1), activation='sigmoid')(shared_layer)
 
-        # Transform the predicted offsets to absolute coordinates in the feature maps
-        pred_decoded = self.decode_offsets(pred_anchor_offsets, anchors, feature_maps_shape)    # TODO: Decide if the coordinates should be clipped to the feature map shape
+        # Transform the predicted offsets to absolute coordinates in the feature maps, Shape: (None, 8*8*64, 4)
+        pred_decoded = self.decode_offsets(pred_anchor_offsets, anchors, feature_maps_shape)
+
+        # Clip or remove the predicted coordinates that are outside the feature maps
+        clipped_boxes = self.clip_boxes(pred_decoded, feature_maps_shape) # TODO: How will this impact the loss function? Remove zero-area boxes?
 
         # Apply Non-Maximum Suppression (NMS) to the proposed coordinates
-        roi_boxes = self.non_maximum_suppression(pred_decoded, roi_scores)
+        roi_boxes = self.non_maximum_suppression(clipped_boxes, roi_scores)
 
         model = tf.keras.Model(inputs=feature_maps, outputs=roi_boxes)
         return model
@@ -82,13 +85,22 @@ class RPN:
         roi_boxes = tf.concat(columns, axis=1)  # Shape: (None, 8*8*64, 4)            
         return roi_boxes
     
-    def non_maximum_suppression(self, boxes, roi_scores):
-        # NMS expects the boxes to be in the format (y1, x1, y2, x2)
-        reshaped_boxes = tf.stack([boxes[:, :, 1], boxes[:, :, 0], boxes[:, :, 3], boxes[:, :, 2]], axis=-1)
+    def clip_boxes(self, boxes, fm_shape):
+        # Clip the coordinates to the feature map
+        x1 = tf.clip_by_value(boxes[:, :, 0], 0, fm_shape[1] - 1)
+        y1 = tf.clip_by_value(boxes[:, :, 1], 0, fm_shape[2] - 1)
+        x2 = tf.clip_by_value(boxes[:, :, 2], 0, fm_shape[1] - 1)
+        y2 = tf.clip_by_value(boxes[:, :, 3], 0, fm_shape[2] - 1)
 
-        reshaped_boxes = tf.reshape(reshaped_boxes, (-1, 4)) # Shape: (None, 4096, 4) -> (None, 4)
-        reshaped_scores = tf.reshape(roi_scores, (-1, 2)) # Shape: (None, 8, 8, 128) -> (None, 2)
-        reshaped_scores = reshaped_scores[:, 0] # Only use true scores
+        clipped_boxes = tf.stack([x1, y1, x2, y2], axis=-1)
+        return clipped_boxes
+    
+    def non_maximum_suppression(self, boxes, roi_scores):
+        reshaped_boxes = tf.reshape(boxes, (-1, 4)) # Shape: (None, 8*8*64, 4) -> (None, 4)
+        reshaped_scores = tf.reshape(roi_scores, (-1,)) # Shape: (None, 8, 8, 128) -> (None,)
+
+        # NMS expects the boxes to be in the format (y1, x1, y2, x2)
+        reshaped_boxes = tf.stack([reshaped_boxes[:, 1], reshaped_boxes[:, 0], reshaped_boxes[:, 3], reshaped_boxes[:, 2]], axis=-1)
 
         selected_indices = tf.image.non_max_suppression(reshaped_boxes, reshaped_scores,
                                                         max_output_size=self.config.rpn_max_proposals,
