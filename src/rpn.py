@@ -13,6 +13,7 @@ class RPN:
     def build_model(self):
         # Get the feature maps from the backbone
         feature_maps = self.backbone.model.output
+        feature_maps_shape = feature_maps.shape
 
         anchors = self.generate_anchors() # [width, height], shape: (64, 2)
         num_anchors = anchors.shape[0]
@@ -33,7 +34,7 @@ class RPN:
         filtered_anchor_offsets = self.non_maximum_suppression(pred_anchor_offsets, roi_scores)
 
         # Transform the predicted offsets to absolute coordinates in the feature maps
-        roi_boxes = self.decode_offsets(filtered_anchor_offsets, anchors)
+        roi_boxes = self.decode_offsets(filtered_anchor_offsets, anchors, feature_maps_shape)
 
         model = tf.keras.Model(inputs=feature_maps, outputs=roi_boxes)
         return model
@@ -62,5 +63,35 @@ class RPN:
         filtered_offsets = tf.reshape(filtered_offsets, tf.shape(offsets)) # Reshape back to original shape
         return filtered_offsets
     
-    def decode_offsets(self, offsets, anchors):
-        exit()
+    def decode_offsets(self, offsets, anchors, fm_shape):
+        anchor_w = anchors[:, 0]
+        anchor_h = anchors[:, 1]
+
+        columns = []
+
+        for x in range(fm_shape[1]):
+            col_boxes = []
+
+            for y in range(fm_shape[2]):
+                dx = offsets[:, x, y, ::4]
+                dy = offsets[:, x, y, 1::4]
+                dw = offsets[:, x, y, 2::4]
+                dh = offsets[:, x, y, 3::4]
+
+                # Move the offset from the current fm position
+                ctr_x, ctr_y = x + dx, y + dy
+                # Scale the width and height of the anchor by the predicted offset
+                w, h = anchor_w * tf.exp(dw), anchor_h * tf.exp(dh)
+
+                # Calculate the absolute coordinates in the feature map
+                x1, y1 = ctr_x - 0.5 * w, ctr_y - 0.5 * h
+                x2, y2 = ctr_x + 0.5 * w, ctr_y + 0.5 * h
+
+                boxes = tf.stack([x1, y1, x2, y2], axis=-1) # Shape: (None, 64, 4)
+                col_boxes.append(boxes)
+
+            col_boxes = tf.concat(col_boxes, axis=1)  # Shape: (None, 8*64, 4)
+            columns.append(col_boxes)
+
+        roi_boxes = tf.concat(columns, axis=1)  # Shape: (None, 8*8*64, 4)             
+        return roi_boxes
