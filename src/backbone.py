@@ -2,6 +2,8 @@ import tensorflow as tf
 
 
 class Backbone:
+    '''The ResNet50 backbone for the Mask R-CNN model.'''
+
     def __init__(self, config, name='Backbone'):
         self.config = config
 

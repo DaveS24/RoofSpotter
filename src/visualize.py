@@ -8,6 +8,8 @@ DEFAULT_COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 class Visualizer:
     @classmethod
     def display_sample(cls, image, mask):
+        '''Display the original image and mask, and an overlay of the mask on the image.'''
+
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
         image = cls._convert_to_original_image(image)
@@ -31,6 +33,8 @@ class Visualizer:
 
     @staticmethod
     def display_avg_feature_map(feature_maps):
+        '''Display the average feature map of the feature maps.'''
+
         averaged_feature_map = np.mean(feature_maps, axis=-1)
 
         plt.imshow(averaged_feature_map[0], cmap='gray')
@@ -39,6 +43,8 @@ class Visualizer:
 
     @classmethod
     def display_rois(cls, image, feature_maps, rois):
+        '''Display the ROIs proposed by the RPN on the original image and the feature map.'''
+
         fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
         image = cls._convert_to_original_image(image)
@@ -75,6 +81,7 @@ class Visualizer:
     def _convert_to_original_image(image):
         '''Convert the image from BGR to RGB and add the mean pixel value back to each pixel.
         This is done to reverse the preprocessing steps that were applied to the image.'''
+
         image_display = image + [103.939, 116.779, 123.68]
         image_display = np.clip(image_display, 0, 255).astype('uint8')
 

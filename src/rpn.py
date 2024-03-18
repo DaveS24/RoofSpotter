@@ -3,6 +3,8 @@ import tensorflow as tf
 
 
 class RPN:
+    '''The Region Proposal Network (RPN) for the Mask R-CNN model.'''
+
     def __init__(self, config, backbone, name='RPN'):
         self.config = config
         self.backbone = backbone
@@ -43,6 +45,8 @@ class RPN:
         return model
     
     def generate_anchors(self):
+        '''Generate the anchors for the RPN to predict offsets for.'''
+
         scales = self.config.anchor_scales # [0.5, 1, 1.5, 2]
         ratios = self.config.anchor_ratios # [1, 1.5, 2]
 
@@ -53,6 +57,8 @@ class RPN:
         return anchors
     
     def decode_offsets(self, offsets, anchors, fm_shape):
+        '''Transform the predicted offsets to absolute coordinates in the feature maps.'''
+
         anchor_w = anchors[:, 0]
         anchor_h = anchors[:, 1]
 
@@ -86,7 +92,8 @@ class RPN:
         return roi_boxes
     
     def clip_boxes(self, boxes, fm_shape):
-        # Clip the coordinates to the feature map
+        '''Clip the predicted coordinates that are outside the feature maps.'''
+
         x1 = tf.clip_by_value(boxes[:, :, 0], 0, fm_shape[1])
         y1 = tf.clip_by_value(boxes[:, :, 1], 0, fm_shape[2])
         x2 = tf.clip_by_value(boxes[:, :, 2], 0, fm_shape[1])
@@ -96,6 +103,8 @@ class RPN:
         return clipped_boxes
     
     def non_maximum_suppression(self, boxes, roi_scores):
+        '''Apply Non-Maximum Suppression (NMS) to the proposed coordinates.'''
+
         reshaped_boxes = tf.reshape(boxes, (-1, 4)) # Shape: (None, 8*8*64, 4) -> (None, 4)
         reshaped_scores = tf.reshape(roi_scores, (-1,)) # Shape: (None, 8, 8, 128) -> (None,)
 

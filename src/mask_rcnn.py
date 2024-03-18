@@ -28,6 +28,8 @@ class MaskRCNN:
         self.model = self.build_model()
 
     def build_model(self):
+        '''Link the components to build the Mask R-CNN model.'''
+
         # Get the input image
         input_image = tf.keras.layers.Input(shape=self.config.image_shape, name='input_image')
 

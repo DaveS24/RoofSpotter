@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 
 
 class BavarianBuildingDataset:
+    '''A dataset class for loading images and masks from the Bavarian Building dataset.'''
+
     def __init__(self, image_dir, mask_dir):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
@@ -15,21 +17,29 @@ class BavarianBuildingDataset:
         self.mask_files = [f for f in os.listdir(mask_dir) if 'umring' in f]
 
     def load_image(self, image_file):
+        '''Load and preprocess the image `image_file` from the dataset.'''
+
         img = Image.open(os.path.join(self.image_dir, image_file))
         img = preprocess_input(np.array(img))
         return img
 
     def load_mask(self, mask_file):
+        '''Load and normalize the mask `mask_file` from the dataset.'''
+
         mask = Image.open(os.path.join(self.mask_dir, mask_file))
         mask = np.array(mask) / 255.0
         return mask
     
     def get_image_mask_pair(self, index):
+        '''Get the image-mask pair at the given `index` from the dataset.'''
+
         image_file = self.image_files[index]
         mask_file = image_file.replace('image', 'umring')
         return self.load_image(image_file), self.load_mask(mask_file)
     
     def get_batch(self, indices):
+        '''Get a batch of images and masks using `indices` from the dataset.'''
+
         assert 0 <= max(indices) < len(self.image_files), f"Index {max(indices)} out of range"
 
         images, masks = [], []
@@ -39,7 +49,9 @@ class BavarianBuildingDataset:
             masks.append(mask)
         return np.stack(images), np.stack(masks)
     
-    def subset(self, size):
+    def subset(self, size=0.1):
+        '''Create a subset of the dataset with the given `size`.'''
+
         assert 0 <= size <= 1, "Subset-size should be a fraction between 0 and 1"
 
         num_samples = round(len(self.image_files) * size)
@@ -51,6 +63,8 @@ class BavarianBuildingDataset:
         return subset
     
     def train_test_val_split(self, train_size=0.7, test_size=0.15, val_size=0.15, random_state=42):
+        '''Split the dataset into training, testing, and validation sets.'''
+
         assert train_size + test_size + val_size == 1.0, "Split sizes should add up to 1.0"
 
         total_size = len(self.image_files)
@@ -64,5 +78,7 @@ class BavarianBuildingDataset:
     
 
 def generator(dataset, indices, batch_size):
+    '''A generator function to yield batches of images and masks from the dataset.'''
+
     for i in range(0, len(indices), batch_size):
         yield dataset.get_batch(indices[i:i + batch_size])

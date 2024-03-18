@@ -10,6 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Clip the bounding box predictions to the feature map dimensions in the rpn.py file.
+- Documentation in the visualize.py file.
+- Documentation in the utils.py file.
+- Documentation in the data_loading.py file.
+- Documentation in the mask_rcnn.py file.
+- Documentation in the backbone.py file.
+- Documentation in the rpn.py file.
 
 ### Fixed
 

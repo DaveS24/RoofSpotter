@@ -1,4 +1,6 @@
 class Config:
+    '''Configuration class for Mask R-CNN.'''
+
     def __init__(self):
         # General
         self.image_shape = (250, 250, 3)
@@ -34,5 +36,7 @@ class Config:
         self.mask_head_optimizer = 'adam'
 
     def info(self):
+        '''Print the configuration settings.'''
+
         for attr, value in self.__dict__.items():
             print(f"{attr}: {value}")
