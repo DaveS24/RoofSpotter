@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Clip the bounding box predictions to the feature map dimensions in the rpn.py file.
 
+### Fixed
+
+- Added a fm_offset parameter to correctly visualize the ROI's on the feature map in the visualize.py file.
+
 
 ## [0.2.10] - 2024-03-16
 
