@@ -3,7 +3,21 @@ import tensorflow as tf
 
 
 class RPN:
-    '''The Region Proposal Network (RPN) for the Mask R-CNN model.'''
+    '''
+    The Region Proposal Network (RPN) for the Mask R-CNN model.
+    
+        Attributes:
+            config (Config): The configuration settings.
+            backbone (Backbone): The backbone for the Mask R-CNN model.
+            model (tf.keras.Model): The RPN model.
+        
+        Methods:
+            build_model: Link the components to build the RPN model.
+            generate_anchors: Generate the anchors for the RPN to predict offsets for.
+            decode_offsets: Transform the predicted offsets to absolute coordinates in the feature maps.
+            clip_boxes: Clip the predicted coordinates that are outside the feature maps.
+            non_maximum_suppression: Apply Non-Maximum Suppression (NMS) to the proposed coordinates.
+    '''
 
     def __init__(self, config, backbone, name='RPN'):
         self.config = config
@@ -12,7 +26,18 @@ class RPN:
         self.model = self.build_model()
         self.model._name = name
 
+
     def build_model(self):
+        '''
+        Link the components to build the RPN model.
+
+            Parameters:
+                None
+
+            Returns:
+                model (tf.keras.Model): The RPN model.
+        '''
+        
         # Get the feature maps from the backbone
         feature_maps = self.backbone.model.output
         feature_maps_shape = feature_maps.shape
@@ -44,8 +69,17 @@ class RPN:
         model = tf.keras.Model(inputs=feature_maps, outputs=roi_boxes)
         return model
     
+    
     def generate_anchors(self):
-        '''Generate the anchors for the RPN to predict offsets for.'''
+        '''
+        Generate the anchors for the RPN to predict offsets for.
+
+            Parameters:
+                None
+
+            Returns:
+                anchors (np.array): The generated anchors for the RPN to predict offsets for.
+        '''
 
         scales = self.config.anchor_scales # [0.5, 1, 1.5, 2]
         ratios = self.config.anchor_ratios # [1, 1.5, 2]
@@ -56,8 +90,19 @@ class RPN:
         anchors = np.array([[width, height] for width in lengths for height in lengths])
         return anchors
     
+    
     def decode_offsets(self, offsets, anchors, fm_shape):
-        '''Transform the predicted offsets to absolute coordinates in the feature maps.'''
+        '''
+        Transform the predicted offsets to absolute coordinates in the feature maps.
+        
+            Parameters:
+                offsets (tf.Tensor): The predicted offsets for the anchors.
+                anchors (np.array): The generated anchors for the RPN to predict offsets for.
+                fm_shape (tf.Tensor): The shape of the feature maps.
+
+            Returns:
+                roi_boxes (tf.Tensor): The absolute coordinates in the feature maps.
+        '''
 
         anchor_w = anchors[:, 0]
         anchor_h = anchors[:, 1]
@@ -91,8 +136,18 @@ class RPN:
         roi_boxes = tf.concat(columns, axis=1)  # Shape: (None, 8*8*64, 4)            
         return roi_boxes
     
+    
     def clip_boxes(self, boxes, fm_shape):
-        '''Clip the predicted coordinates that are outside the feature maps.'''
+        '''
+        Clip the predicted coordinates that are outside the feature maps.
+        
+            Parameters:
+                boxes (tf.Tensor): The predicted absolute coordinates for the anchors.
+                fm_shape (tf.Tensor): The shape of the feature maps.
+
+            Returns:
+                clipped_boxes (tf.Tensor): The clipped absolute coordinates in the feature maps.
+        '''
 
         x1 = tf.clip_by_value(boxes[:, :, 0], 0, fm_shape[1])
         y1 = tf.clip_by_value(boxes[:, :, 1], 0, fm_shape[2])
@@ -102,8 +157,18 @@ class RPN:
         clipped_boxes = tf.stack([x1, y1, x2, y2], axis=-1)
         return clipped_boxes
     
+    
     def non_maximum_suppression(self, boxes, roi_scores):
-        '''Apply Non-Maximum Suppression (NMS) to the proposed coordinates.'''
+        '''
+        Apply Non-Maximum Suppression (NMS) to the proposed coordinates.
+        
+            Parameters:
+                boxes (tf.Tensor): The predicted absolute coordinates for the anchors.
+                roi_scores (tf.Tensor): The score whether an anchor contains an object or not.
+
+            Returns:
+                selected_boxes (tf.Tensor): The selected absolute coordinates in the feature maps.
+        '''
 
         reshaped_boxes = tf.reshape(boxes, (-1, 4)) # Shape: (None, 8*8*64, 4) -> (None, 4)
         reshaped_scores = tf.reshape(roi_scores, (-1,)) # Shape: (None, 8, 8, 128) -> (None,)

@@ -1,5 +1,31 @@
 class Config:
-    '''Configuration class for Mask R-CNN.'''
+    '''
+    Configuration class for Mask R-CNN.
+    
+        Attributes:
+            image_shape (tuple): The shape of the input image.
+            num_classes (int): The number of classes.
+            batch_size (int): The batch size.
+            model_dir (str): The directory to save the model.
+            anchor_scales (list): The scales for the anchors.
+            anchor_ratios (list): The ratios for the anchors.
+            backbone_weights (str): The weights for the backbone.
+            backbone_trainable_layers (int): The number of trainable layers in the backbone.
+            rpn_conv_filters (int): The number of filters for the RPN convolutional layer.
+            rpn_max_proposals (int): The maximum number of proposals for the RPN.
+            rpn_iou_threshold (float): The IoU threshold for the RPN.
+            rpn_score_threshold (float): The score threshold for the RPN.
+            rpn_optimizer (str): The optimizer for the RPN.
+            roi_align_pool_size (tuple): The pool size for the ROI Align layer.
+            classifier_dense_units (int): The number of units for the classifier dense layer.
+            classifier_optimizer (str): The optimizer for the classifier.
+            mask_head_conv_filters (int): The number of filters for the mask head convolutional layer.
+            mask_head_upsample_filters (int): The number of filters for the mask head upsampling layer.
+            mask_head_optimizer (str): The optimizer for the mask head.
+            
+        Methods:
+            info: Print the configuration settings.
+    '''
 
     def __init__(self):
         # General
@@ -34,9 +60,18 @@ class Config:
         self.mask_head_conv_filters = 256
         self.mask_head_upsample_filters = 256
         self.mask_head_optimizer = 'adam'
+        
 
     def info(self):
-        '''Print the configuration settings.'''
+        '''
+        Print the configuration settings.
+        
+            Parameters:
+                None
+                
+            Returns:
+                None
+        '''
 
         for attr, value in self.__dict__.items():
             print(f"{attr}: {value}")

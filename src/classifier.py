@@ -2,6 +2,18 @@ import tensorflow as tf
 
 
 class Classifier:
+    '''
+    The classifier for the Mask R-CNN model.
+
+        Attributes:
+            config (Config): The configuration settings.
+            roi_align (ROIAlignLayer): The ROI Align layer for the Mask R-CNN model.
+            model (tf.keras.Model): The classifier for the Mask R-CNN model.
+            
+        Methods:
+            build_model: Link the components to build the classifier.
+    '''
+
     def __init__(self, config, roi_align, name='Classifier'):
         self.config = config
         self.roi_align = roi_align
@@ -9,7 +21,18 @@ class Classifier:
         self.model = self.build_model()
         self.model._name = name
 
+
     def build_model(self):
+        '''
+        Link the components to build the classifier.
+
+            Parameters:
+                None
+                
+            Returns:
+                model (tf.keras.Model): The classifier for the Mask R-CNN model.
+        '''
+
         # Get the aligned ROIs from the ROI Align layer
         roi_aligned = self.roi_align.model.output
 
@@ -27,3 +50,4 @@ class Classifier:
 
         model = tf.keras.Model(inputs=roi_aligned, outputs=[class_scores, bbox])
         return model
+    

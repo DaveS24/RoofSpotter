@@ -2,6 +2,19 @@ import tensorflow as tf
 
 
 class ROIAlignLayer:
+    '''
+    The ROI Align layer for the Mask R-CNN model.
+    
+        Attributes:
+            config (Config): The configuration settings.
+            backbone (Backbone): The backbone for the Mask R-CNN model.
+            rpn (RPN): The Region Proposal Network (RPN) for the Mask R-CNN model.
+            model (tf.keras.Model): The ROI Align layer.
+            
+        Methods:
+            build_model: Link the components to build the ROI Align layer.
+    '''
+
     def __init__(self, config, backbone, rpn, name='ROI_Align'):
         self.config = config
         self.backbone = backbone
@@ -10,7 +23,18 @@ class ROIAlignLayer:
         self.model = self.build_model()
         self.model._name = name
 
+
     def build_model(self):
+        '''
+        Link the components to build the ROI Align layer.
+
+            Parameters:
+                None
+
+            Returns:
+                model (tf.keras.Model): The ROI Align layer.
+        '''
+        
         # Get the feature maps from the backbone
         feature_maps = self.backbone.model.output
         # Get the ROI boxes from the RPN

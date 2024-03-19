@@ -6,9 +6,30 @@ DEFAULT_COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 
 
 class Visualizer:
+    '''
+    A class to visualize the results of the Mask R-CNN model and its components.
+    
+        Attributes:
+            None
+            
+        Methods:
+            display_sample: Display the original image and mask, and an overlay of the mask on the image.
+            display_avg_feature_map: Display the average feature map of the feature maps.
+            display_rois: Display the ROIs proposed by the RPN on the original image and the feature map.
+    '''
+
     @classmethod
     def display_sample(cls, image, mask):
-        '''Display the original image and mask, and an overlay of the mask on the image.'''
+        '''
+        Display the original image and mask, and an overlay of the mask on the image.
+        
+            Parameters:
+                image (np.array): The original image.
+                mask (np.array): The original mask.
+
+            Returns:
+                None
+        '''
 
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
@@ -31,9 +52,18 @@ class Visualizer:
 
         plt.show()
 
+
     @staticmethod
     def display_avg_feature_map(feature_maps):
-        '''Display the average feature map of the feature maps.'''
+        '''
+        Display the average feature map of the feature maps.
+        
+            Parameters:
+                feature_maps (np.array): The feature maps.
+
+            Returns:
+                None
+        '''
 
         averaged_feature_map = np.mean(feature_maps, axis=-1)
 
@@ -41,9 +71,20 @@ class Visualizer:
         plt.axis('off')
         plt.show()
 
+
     @classmethod
     def display_rois(cls, image, feature_maps, rois):
-        '''Display the ROIs proposed by the RPN on the original image and the feature map.'''
+        '''
+        Display the ROIs proposed by the RPN on the original image and the feature map.
+        
+            Parameters:
+                image (np.array): The original image.
+                feature_maps (np.array): The feature maps.
+                rois (np.array): The ROIs proposed by the RPN.
+
+            Returns:
+                None
+        '''
 
         fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
@@ -77,10 +118,20 @@ class Visualizer:
 
         plt.show()
 
+
     @staticmethod
     def _convert_to_original_image(image):
-        '''Convert the image from BGR to RGB and add the mean pixel value back to each pixel.
-        This is done to reverse the preprocessing steps that were applied to the image.'''
+        '''
+        Convert the image from BGR to RGB and add the mean pixel value back to each pixel.
+        
+        This is done to reverse the preprocessing steps that were applied to the image.
+        
+            Parameters:
+                image (np.array): The image to convert.
+                
+            Returns:
+                image_display (np.array): The converted image.
+        '''
 
         image_display = image + [103.939, 116.779, 123.68]
         image_display = np.clip(image_display, 0, 255).astype('uint8')

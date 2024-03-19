@@ -15,10 +15,25 @@ tf.random.set_seed(0)
 
 
 class MaskRCNN:
+    '''
+    The Mask R-CNN model.
+    
+        Attributes:
+            config (Config): The configuration settings.
+            backbone (Backbone): The backbone for the Mask R-CNN model.
+            rpn (RPN): The Region Proposal Network (RPN) for the Mask R-CNN model.
+            roi_align (ROIAlignLayer): The ROI Align layer for the Mask R-CNN model.
+            classifier (Classifier): The classifier for the Mask R-CNN model.
+            mask_head (MaskHead): The mask head for the Mask R-CNN model.
+            model (tf.keras.Model): The Mask R-CNN model.
+            
+        Methods:
+            build_model: Link the components to build the Mask R-CNN model.
+    '''
+
     def __init__(self):
         self.config = Config()
 
-        # Initialize the components
         self.backbone = Backbone(self.config)
         self.rpn = RPN(self.config, self.backbone)
         self.roi_align = ROIAlignLayer(self.config, self.backbone, self.rpn)
@@ -27,8 +42,17 @@ class MaskRCNN:
 
         self.model = self.build_model()
 
+
     def build_model(self):
-        '''Link the components to build the Mask R-CNN model.'''
+        '''
+        Link the components to build the Mask R-CNN model.
+        
+            Parameters:
+                None
+                
+            Returns:
+                model (tf.keras.Model): The Mask R-CNN model.
+        '''
 
         # Get the input image
         input_image = tf.keras.layers.Input(shape=self.config.image_shape, name='input_image')
