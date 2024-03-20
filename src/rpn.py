@@ -63,7 +63,7 @@ class RPN:
         # Clip or remove the predicted coordinates that are outside the feature maps
         clipped_boxes = self.clip_boxes(pred_decoded, feature_maps_shape) # TODO: How will this impact the loss function? Remove zero-area boxes?
 
-        # Apply Non-Maximum Suppression (NMS) to the proposed coordinates
+        # Apply Non-Maximum Suppression (NMS) to the proposed coordinates, Shape: (batch_size, num_selected, 4)
         roi_boxes = self.non_maximum_suppression(clipped_boxes, roi_scores)
 
         model = tf.keras.Model(inputs=input_feature_maps, outputs=roi_boxes)

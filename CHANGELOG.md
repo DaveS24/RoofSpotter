@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Set fix batch size for each component.
+- Model plot to display the model's architecture.
 
 ### Changed
 
