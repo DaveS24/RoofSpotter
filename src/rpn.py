@@ -37,27 +37,27 @@ class RPN:
             Returns:
                 model (tf.keras.Model): The RPN model.
         '''
-        
-        # Get the feature maps from the backbone
-        feature_maps = self.backbone.model.output
-        feature_maps_shape = feature_maps.shape
+
+        input_feature_maps = tf.keras.layers.Input(shape=self.backbone.model.output.shape[1:], batch_size=self.config.batch_size,
+                                                   name='input_feature_maps')
+        feature_maps_shape = input_feature_maps.shape
 
         anchors = self.generate_anchors() # [width, height], Shape: (64, 2)
         num_anchors = anchors.shape[0]
 
         # Reduce depth of the feature map
         shared_layer = tf.keras.layers.Conv2D(self.config.rpn_conv_filters, (3, 3),
-                                              padding='same', activation='relu')(feature_maps)
+                                              padding='same', activation='relu')(input_feature_maps)
 
         # Bounding box regression offsets for each anchor
-        # (dx, dy, dw, dh), (dx, dy, dw, dh), ... for all 64 anchors, Shape: (None, 8, 8, 256)
+        # (dx, dy, dw, dh), (dx, dy, dw, dh), ... for all 64 anchors, Shape: (batch_size, 8, 8, 256)
         pred_anchor_offsets = tf.keras.layers.Conv2D(num_anchors * 4, (1, 1))(shared_layer)
 
         # Score whether an anchor contains an object or not
-        # (obj_score), (obj_score) ... for all 64 anchors, Shape: (None, 8, 8, 64)
+        # (obj_score), (obj_score) ... for all 64 anchors, Shape: (batch_size, 8, 8, 64)
         roi_scores = tf.keras.layers.Conv2D(num_anchors, (1, 1), activation='sigmoid')(shared_layer)
 
-        # Transform the predicted offsets to absolute coordinates in the feature maps, Shape: (None, 8*8*64, 4)
+        # Transform the predicted offsets to absolute coordinates in the feature maps, Shape: (batch_size, 8*8*64, 4)
         pred_decoded = self.decode_offsets(pred_anchor_offsets, anchors, feature_maps_shape)
 
         # Clip or remove the predicted coordinates that are outside the feature maps
@@ -66,7 +66,7 @@ class RPN:
         # Apply Non-Maximum Suppression (NMS) to the proposed coordinates
         roi_boxes = self.non_maximum_suppression(clipped_boxes, roi_scores)
 
-        model = tf.keras.Model(inputs=feature_maps, outputs=roi_boxes)
+        model = tf.keras.Model(inputs=input_feature_maps, outputs=roi_boxes)
         return model
     
     
@@ -118,22 +118,19 @@ class RPN:
                 dw = offsets[:, x, y, 2::4]
                 dh = offsets[:, x, y, 3::4]
 
-                # Move the offset from the current fm position
                 ctr_x, ctr_y = x + dx, y + dy
-                # Scale the width and height of the anchor by the predicted offset
                 w, h = anchor_w * tf.exp(dw), anchor_h * tf.exp(dh)
 
-                # Calculate the absolute coordinates in the feature map
                 x1, y1 = ctr_x - 0.5 * w, ctr_y - 0.5 * h
                 x2, y2 = ctr_x + 0.5 * w, ctr_y + 0.5 * h
 
-                boxes = tf.stack([x1, y1, x2, y2], axis=-1) # Shape: (None, 64, 4)
+                boxes = tf.stack([x1, y1, x2, y2], axis=-1) # Shape: (batch_size, 64, 4)
                 col_boxes.append(boxes)
 
-            col_boxes = tf.concat(col_boxes, axis=1)  # Shape: (None, 8*64, 4)
+            col_boxes = tf.concat(col_boxes, axis=1)  # Shape: (batch_size, 8*64, 4)
             columns.append(col_boxes)
 
-        roi_boxes = tf.concat(columns, axis=1)  # Shape: (None, 8*8*64, 4)            
+        roi_boxes = tf.concat(columns, axis=1)  # Shape: (batch_size, 8*8*64, 4)            
         return roi_boxes
     
     
@@ -170,19 +167,27 @@ class RPN:
                 selected_boxes (tf.Tensor): The selected absolute coordinates in the feature maps.
         '''
 
-        reshaped_boxes = tf.reshape(boxes, (-1, 4)) # Shape: (None, 8*8*64, 4) -> (None, 4)
-        reshaped_scores = tf.reshape(roi_scores, (-1,)) # Shape: (None, 8, 8, 128) -> (None,)
+        def single_image_nms(boxes, scores):
+            selected_indices = tf.image.non_max_suppression(boxes, scores,
+                                                            max_output_size=self.config.rpn_max_proposals,
+                                                            iou_threshold=self.config.rpn_iou_threshold,
+                                                            score_threshold=self.config.rpn_score_threshold)
+            
+            selected_boxes = tf.gather(boxes, selected_indices)
+            return selected_boxes
+        
 
         # NMS expects the boxes to be in the format (y1, x1, y2, x2)
-        reshaped_boxes = tf.stack([reshaped_boxes[:, 1], reshaped_boxes[:, 0], reshaped_boxes[:, 3], reshaped_boxes[:, 2]], axis=-1)
+        reshaped_boxes = tf.stack([boxes[:, :, 1], boxes[:, :, 0], boxes[:, :, 3], boxes[:, :, 2]], axis=-1)
+        reshaped_scores = tf.reshape(roi_scores, (-1, 8*8*64)) # Shape: (batch_size, 8, 8, 64) -> (batch_size, 8*8*64)
 
-        selected_indices = tf.image.non_max_suppression(reshaped_boxes, reshaped_scores,
-                                                        max_output_size=self.config.rpn_max_proposals,
-                                                        iou_threshold=self.config.rpn_iou_threshold,
-                                                        score_threshold=self.config.rpn_score_threshold)
+        selected_boxes = []
+        for i in range(reshaped_boxes.shape[0]):
+            selected_image_boxes = single_image_nms(reshaped_boxes[i], reshaped_scores[i])
+            selected_boxes.append(selected_image_boxes)
         
-        selected_boxes = tf.gather(reshaped_boxes, selected_indices) # Shape: (None, 4)
+        selected_boxes = tf.stack(selected_boxes, axis=0)
 
         # Reformat the boxes to the format (x1, y1, x2, y2)
-        selected_boxes = tf.stack([selected_boxes[:, 1], selected_boxes[:, 0], selected_boxes[:, 3], selected_boxes[:, 2]], axis=-1)
+        selected_boxes = tf.stack([selected_boxes[:, :, 1], selected_boxes[:, :, 0], selected_boxes[:, :, 3], selected_boxes[:, :, 2]], axis=-1)
         return selected_boxes

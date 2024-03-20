@@ -62,7 +62,7 @@ class BavarianBuildingDataset:
         '''
 
         mask = Image.open(os.path.join(self.mask_dir, mask_file))
-        mask = np.array(mask) / 255.0
+        mask = np.array(mask)[:, :, 0] / 255.0
         return mask
     
     

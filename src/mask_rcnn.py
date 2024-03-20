@@ -36,9 +36,9 @@ class MaskRCNN:
 
         self.backbone = Backbone(self.config)
         self.rpn = RPN(self.config, self.backbone)
-        self.roi_align = ROIAlignLayer(self.config, self.backbone, self.rpn)
-        self.classifier = Classifier(self.config, self.roi_align)
-        self.mask_head = MaskHead(self.config, self.roi_align)
+        # self.roi_align = ROIAlignLayer(self.config, self.backbone, self.rpn)
+        # self.classifier = Classifier(self.config, self.roi_align)
+        # self.mask_head = MaskHead(self.config, self.roi_align)
 
         self.model = self.build_model()
 
@@ -55,7 +55,7 @@ class MaskRCNN:
         '''
 
         # Get the input image
-        input_image = tf.keras.layers.Input(shape=self.config.image_shape, name='input_image')
+        input_image = tf.keras.layers.Input(shape=self.config.image_shape, batch_size=self.config.batch_size, name='input_image')
 
         # Get the feature maps from the backbone
         feature_maps = self.backbone.model(input_image)
@@ -63,16 +63,18 @@ class MaskRCNN:
         # Get the ROIs from the RPN
         roi_boxes = self.rpn.model(feature_maps)
 
-        # Get the aligned ROIs from the ROI Align layer
-        aligned_rois = self.roi_align.model([feature_maps, roi_boxes])
+        model = tf.keras.Model(inputs=input_image, outputs=roi_boxes, name='Mask_RCNN')
 
-        # Get the class scores and bounding box coordinates from the classifier
-        class_scores, bbox = self.classifier.model(aligned_rois)
+        # # Get the aligned ROIs from the ROI Align layer
+        # aligned_rois = self.roi_align.model([feature_maps, roi_boxes])
 
-        # Get the binary masks from the mask head
-        binary_masks = self.mask_head.model(aligned_rois)
+        # # Get the class scores and bounding box coordinates from the classifier
+        # class_scores, bbox = self.classifier.model(aligned_rois)
 
-        model = tf.keras.Model(inputs=input_image, outputs=[class_scores, bbox, binary_masks], name='Mask_RCNN')
+        # # Get the binary masks from the mask head
+        # binary_masks = self.mask_head.model(aligned_rois)
+
+        # model = tf.keras.Model(inputs=input_image, outputs=[class_scores, bbox, binary_masks], name='Mask_RCNN')
         return model
 
 # TODO:

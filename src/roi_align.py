@@ -34,20 +34,13 @@ class ROIAlignLayer:
             Returns:
                 model (tf.keras.Model): The ROI Align layer.
         '''
+
+        input_feature_maps = tf.keras.layers.Input(shape=self.backbone.model.output.shape[1:], batch_size=self.config.batch_size,
+                                                   name='input_feature_maps')
+        input_roi_boxes = tf.keras.layers.Input(shape=self.rpn.model.output.shape[1:], batch_size=self.config.batch_size,
+                                                name='input_roi_boxes')
         
-        # Get the feature maps from the backbone
-        feature_maps = self.backbone.model.output
-        # Get the ROI boxes from the RPN
-        roi_boxes = self.rpn.model.output
+        aligned_rois = ...
 
-        # Normalize the coordinates of the rois
-        normalized_rois = roi_boxes / tf.constant([self.backbone.model.input_shape[1],
-                                                   self.backbone.model.input_shape[2],
-                                                   self.backbone.model.input_shape[1],
-                                                   self.backbone.model.input_shape[2]], dtype=tf.float32)
-
-        # Use crop_and_resize to perform the ROI Align operation
-        aligned_rois = tf.image.crop_and_resize(feature_maps, normalized_rois, tf.range(tf.shape(roi_boxes)[0]), crop_size=self.config.roi_align_pool_size)
-
-        model = tf.keras.Model(inputs=[feature_maps, roi_boxes], outputs=aligned_rois)
+        model = tf.keras.Model(inputs=[input_feature_maps, input_roi_boxes], outputs=aligned_rois)
         return model

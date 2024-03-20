@@ -33,21 +33,12 @@ class Classifier:
                 model (tf.keras.Model): The classifier for the Mask R-CNN model.
         '''
 
-        # Get the aligned ROIs from the ROI Align layer
-        roi_aligned = self.roi_align.model.output
+        input_roi_aligned = tf.keras.layers.Input(shape=self.roi_align.model.output.shape[1:], batch_size=self.config.batch_size,
+                                                  name='input_roi_aligned')
 
-        x = tf.keras.layers.Flatten()(roi_aligned)
+        class_scores = ...
+        bbox = ...
 
-        # Apply a fully connected layer to extract features
-        x = tf.keras.layers.Dense(self.config.classifier_dense_units, activation='relu')(x)
-
-        # Apply a fully connected layer to predict the class scores
-        class_scores = tf.keras.layers.Dense(self.config.num_classes, activation='softmax', name='class_scores')(x)
-
-        # Apply a fully connected layer to predict the bounding box coordinates
-        bbox = tf.keras.layers.Dense(self.config.num_classes * 4, activation='linear', name='bbox')(x)
-        bbox = tf.keras.layers.Reshape((self.config.num_classes, 4))(bbox)
-
-        model = tf.keras.Model(inputs=roi_aligned, outputs=[class_scores, bbox])
+        model = tf.keras.Model(inputs=input_roi_aligned, outputs=[class_scores, bbox])
         return model
     

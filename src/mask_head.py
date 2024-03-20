@@ -32,21 +32,12 @@ class MaskHead:
             Returns:
                 model (tf.keras.Model): The mask head for the Mask R-CNN model.
         '''
-        
-        # Get the aligned ROIs from the ROI Align layer
-        roi_aligned = self.roi_align.model.output
 
-        # Apply a series of convolutional and upsampling layers
-        x = tf.keras.layers.Conv2D(self.config.mask_head_conv_filters, (3, 3),
-                                   padding='same', activation='relu')(roi_aligned)
-        x = tf.keras.layers.Conv2D(self.config.mask_head_conv_filters, (3, 3),
-                                   padding='same', activation='relu')(x)
-        x = tf.keras.layers.Conv2DTranspose(self.config.mask_head_upsample_filters, (2, 2),
-                                            strides=2, activation='relu')(x)
+        input_roi_aligned = tf.keras.layers.Input(shape=self.roi_align.model.output.shape[1:], batch_size=self.config.batch_size,
+                                                  name='input_roi_aligned')
         
-        # Apply the final convolutional layer to predict the binary masks
-        binary_masks = tf.keras.layers.Conv2D(self.config.num_classes, (1, 1), activation='sigmoid')(x)
+        binary_masks = ...
 
-        model = tf.keras.Model(inputs=roi_aligned, outputs=binary_masks)
+        model = tf.keras.Model(inputs=input_roi_aligned, outputs=binary_masks)
         return model
     

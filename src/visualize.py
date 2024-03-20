@@ -43,7 +43,8 @@ class Visualizer:
         axes[1].set_title('Original Mask')
 
         # Overlay the mask on the image
-        overlay = np.where(mask[:, :, :3] > 0, [255, 255, 255], image)
+        mask_3d = np.stack([mask]*3, axis=-1)
+        overlay = np.where(mask_3d > 0, [255, 255, 255], image)
         axes[2].imshow(overlay)
 
         # Remove axis labels
@@ -67,19 +68,19 @@ class Visualizer:
 
         averaged_feature_map = np.mean(feature_maps, axis=-1)
 
-        plt.imshow(averaged_feature_map[0], cmap='gray')
+        plt.imshow(averaged_feature_map, cmap='gray')
         plt.axis('off')
         plt.show()
 
 
     @classmethod
-    def display_rois(cls, image, feature_maps, rois):
+    def display_rois(cls, image, feature_map, rois):
         '''
         Display the ROIs proposed by the RPN on the original image and the feature map.
         
             Parameters:
                 image (np.array): The original image.
-                feature_maps (np.array): The feature maps.
+                feature_map (np.array): The feature map.
                 rois (np.array): The ROIs proposed by the RPN.
 
             Returns:
@@ -91,10 +92,10 @@ class Visualizer:
         image = cls._convert_to_original_image(image)
 
         axes[0].imshow(image)
-        axes[1].imshow(np.mean(feature_maps, axis=-1)[0], cmap='gray')
+        axes[1].imshow(np.mean(feature_map, axis=-1), cmap='gray')
 
-        scale_x = image.shape[0] / feature_maps.shape[1]
-        scale_y = image.shape[1] / feature_maps.shape[2]
+        scale_x = image.shape[0] / feature_map.shape[0]
+        scale_y = image.shape[1] / feature_map.shape[1]
 
         fm_offset = -0.5 # Offset to align the ROIs with the feature map due to a shift that plt produces
 

@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
+## [Unreleased]
+
+### Added
+
+- Set fix batch size for each component.
+
+### Changed
+
+- Model's input dimensions to be fixed for each component.
+- Set placeholders for the ROI Align, Classifier, and Mask Head components.
+
+### Fixed
+
+- The load_mask() function in the data_loading.py file to only load one color channel.
+- The NMS to work correctly for each feature map in the batch.
+- The visualizations to work correctly for the fixed batch size.
+
+
 ## [0.2.11] - 2024-03-18
 
 ### Added
