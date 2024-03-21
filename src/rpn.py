@@ -183,10 +183,10 @@ class RPN:
 
         selected_boxes = []
         for i in range(reshaped_boxes.shape[0]):
-            selected_image_boxes = single_image_nms(reshaped_boxes[i], reshaped_scores[i])
+            selected_image_boxes = single_image_nms(reshaped_boxes[i], reshaped_scores[i]) # Shape: (num_selected, 4)
             selected_boxes.append(selected_image_boxes)
         
-        selected_boxes = tf.stack(selected_boxes, axis=0)
+        selected_boxes = tf.stack(selected_boxes, axis=0) # Shape: (batch_size, num_selected, 4)
 
         # Reformat the boxes to the format (x1, y1, x2, y2)
         selected_boxes = tf.stack([selected_boxes[:, :, 1], selected_boxes[:, :, 0], selected_boxes[:, :, 3], selected_boxes[:, :, 2]], axis=-1)
