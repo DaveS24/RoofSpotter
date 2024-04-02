@@ -57,11 +57,11 @@ class MaskRCNN:
         # Get the input image
         input_image = tf.keras.layers.Input(shape=self.config.image_shape, batch_size=self.config.batch_size, name='input_image')
 
-        # Get the feature maps from the backbone
-        feature_maps = self.backbone.model(input_image)
+        # Get the feature map from the backbone
+        feature_map = self.backbone.model(input_image)
 
         # Get the ROIs from the RPN
-        roi_boxes = self.rpn.model(feature_maps)
+        roi_boxes = self.rpn.model(feature_map)
 
         model = tf.keras.Model(inputs=input_image, outputs=roi_boxes, name='Mask_RCNN')
 

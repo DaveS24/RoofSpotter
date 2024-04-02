@@ -16,6 +16,7 @@ class Visualizer:
             display_sample: Display the original image and mask, and an overlay of the mask on the image.
             display_avg_feature_map: Display the average feature map of the feature maps.
             display_rois: Display the ROIs proposed by the RPN on the original image and the feature map.
+            dislpay_aligned_sample: Display one ROI on the feature map and its alignements.
     '''
 
     @classmethod
@@ -55,18 +56,18 @@ class Visualizer:
 
 
     @staticmethod
-    def display_avg_feature_map(feature_maps):
+    def display_avg_feature_map(feature_map):
         '''
-        Display the average feature map of the feature maps.
+        Display the average feature map of the feature map.
         
             Parameters:
-                feature_maps (np.array): The feature maps.
+                feature_map (np.array): The feature map.
 
             Returns:
                 None
         '''
 
-        averaged_feature_map = np.mean(feature_maps, axis=-1)
+        averaged_feature_map = np.mean(feature_map, axis=-1)
 
         plt.imshow(averaged_feature_map, cmap='gray')
         plt.axis('off')
@@ -112,6 +113,37 @@ class Visualizer:
 
             axes[0].add_patch(plt.Rectangle((ix1, iy1), ix2 - ix1, iy2 - iy1, fill=False, edgecolor=color, lw=1))
             axes[1].add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor=color, lw=1))
+
+        # Remove axis labels
+        for ax in axes:
+            ax.axis('off')
+
+        plt.show()
+
+
+    @classmethod
+    def dislpay_aligned_sample(cls, feature_map, rois, aligned_rois):
+        '''
+        Display one ROI on the feature map and its alignements.
+        
+            Parameters:
+                feature_map (np.array): The feature map.
+                rois (np.array): The ROIs proposed by the RPN.
+                aligned_rois (np.array): The aligned ROIs.
+
+            Returns:
+                None
+        '''
+
+        fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+
+        # Overlay one ROI on the feature map
+        x1, y1, x2, y2 = rois[0]
+        axes[0].imshow(np.mean(feature_map, axis=-1), cmap='gray')
+        axes[0].add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='b', lw=1))
+
+        # Display the corresponding aligned ROI
+        axes[1].imshow(np.mean(aligned_rois[0], axis=-1), cmap='gray')
 
         # Remove axis labels
         for ax in axes:

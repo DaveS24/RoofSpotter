@@ -12,17 +12,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Set fix batch size for each component.
 - Model plot to display the model's architecture.
 - Descriptive comments about the output shapes in the rpn.py file.
+- The 'alignments.ipynb' file to the project's testing folder.
+    - A notebook to test the logic of the ROI Align layer.
+- Testing of the sampling-point generation in the alignments.ipynb file.
 
 ### Changed
 
 - Model's input dimensions to be fixed for each component.
 - Set placeholders for the ROI Align, Classifier, and Mask Head components.
+- Data-paths to be set in the Config class in the utils.py file.
 
 ### Fixed
 
 - The load_mask() function in the data_loading.py file to only load one color channel.
 - The NMS to work correctly for each feature map in the batch.
 - The visualizations to work correctly for the fixed batch size.
+- Minor rephrasing in multiple files.
 
 
 ## [0.2.11] - 2024-03-18

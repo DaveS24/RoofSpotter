@@ -29,6 +29,8 @@ class Config:
 
     def __init__(self):
         # General
+        self.image_dir = '../data/bbd250-image/'
+        self.mask_dir = '../data/bbd250-umring/'
         self.image_shape = (250, 250, 3)
         self.num_classes = 2
         self.batch_size = 16
@@ -51,6 +53,7 @@ class Config:
 
         # ROI Align
         self.roi_align_pool_size = (7, 7)
+        self.roi_align_sample_grid = (2, 2)
 
         # Classifier
         self.classifier_dense_units = 1024

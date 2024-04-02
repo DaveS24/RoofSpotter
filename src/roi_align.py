@@ -35,12 +35,19 @@ class ROIAlignLayer:
                 model (tf.keras.Model): The ROI Align layer.
         '''
 
-        input_feature_maps = tf.keras.layers.Input(shape=self.backbone.model.output.shape[1:], batch_size=self.config.batch_size,
+        input_feature_map = tf.keras.layers.Input(shape=self.backbone.model.output.shape[1:], batch_size=self.config.batch_size,
                                                    name='input_feature_maps')
         input_roi_boxes = tf.keras.layers.Input(shape=self.rpn.model.output.shape[1:], batch_size=self.config.batch_size,
                                                 name='input_roi_boxes')
         
-        aligned_rois = ...
+        interpolated_rois = self.sample_and_interpolate(input_feature_map, input_roi_boxes)
+        aligned_rois = self.pool_interpolations(interpolated_rois)
 
-        model = tf.keras.Model(inputs=[input_feature_maps, input_roi_boxes], outputs=aligned_rois)
+        model = tf.keras.Model(inputs=[input_feature_map, input_roi_boxes], outputs=aligned_rois)
         return model
+
+    def sample_and_interpolate(self, feature_map, roi_boxes):
+        pass
+
+    def pool_interpolations(self, interpolated_rois):
+        pass

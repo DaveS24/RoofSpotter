@@ -38,16 +38,16 @@ class RPN:
                 model (tf.keras.Model): The RPN model.
         '''
 
-        input_feature_maps = tf.keras.layers.Input(shape=self.backbone.model.output.shape[1:], batch_size=self.config.batch_size,
+        input_feature_map = tf.keras.layers.Input(shape=self.backbone.model.output.shape[1:], batch_size=self.config.batch_size,
                                                    name='input_feature_maps')
-        feature_maps_shape = input_feature_maps.shape
+        feature_maps_shape = input_feature_map.shape
 
         anchors = self.generate_anchors() # [width, height], Shape: (64, 2)
         num_anchors = anchors.shape[0]
 
         # Reduce depth of the feature map
         shared_layer = tf.keras.layers.Conv2D(self.config.rpn_conv_filters, (3, 3),
-                                              padding='same', activation='relu')(input_feature_maps)
+                                              padding='same', activation='relu')(input_feature_map)
 
         # Bounding box regression offsets for each anchor
         # (dx, dy, dw, dh), (dx, dy, dw, dh), ... for all 64 anchors, Shape: (batch_size, 8, 8, 256)
@@ -66,7 +66,7 @@ class RPN:
         # Apply Non-Maximum Suppression (NMS) to the proposed coordinates, Shape: (batch_size, num_selected, 4)
         roi_boxes = self.non_maximum_suppression(clipped_boxes, roi_scores)
 
-        model = tf.keras.Model(inputs=input_feature_maps, outputs=roi_boxes)
+        model = tf.keras.Model(inputs=input_feature_map, outputs=roi_boxes)
         return model
     
     
