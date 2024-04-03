@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The 'alignments.ipynb' file to the project's testing folder.
     - A notebook to test the logic of the ROI Align layer.
 - Testing of the sampling-point generation in the alignments.ipynb file.
+- Testing of the neighbor-point finding in the alignments.ipynb file.
 
 ### Changed
 
