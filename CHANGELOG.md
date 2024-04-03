@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     - A notebook to test the logic of the ROI Align layer.
 - Testing of the sampling-point generation in the alignments.ipynb file.
 - Testing of the neighbor-point finding in the alignments.ipynb file.
+- Testing of the weights calculation in the alignments.ipynb file.
 
 ### Changed
 
