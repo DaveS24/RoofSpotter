@@ -146,10 +146,10 @@ class RPN:
                 clipped_boxes (tf.Tensor): The clipped absolute coordinates in the feature maps.
         '''
 
-        x1 = tf.clip_by_value(boxes[:, :, 0], 0, fm_shape[1])
-        y1 = tf.clip_by_value(boxes[:, :, 1], 0, fm_shape[2])
-        x2 = tf.clip_by_value(boxes[:, :, 2], 0, fm_shape[1])
-        y2 = tf.clip_by_value(boxes[:, :, 3], 0, fm_shape[2])
+        x1 = tf.clip_by_value(boxes[:, :, 0], 0, fm_shape[1] - 1)
+        y1 = tf.clip_by_value(boxes[:, :, 1], 0, fm_shape[2] - 1)
+        x2 = tf.clip_by_value(boxes[:, :, 2], 0, fm_shape[1] - 1)
+        y2 = tf.clip_by_value(boxes[:, :, 3], 0, fm_shape[2] - 1)
 
         clipped_boxes = tf.stack([x1, y1, x2, y2], axis=-1)
         return clipped_boxes

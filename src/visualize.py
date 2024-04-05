@@ -95,10 +95,8 @@ class Visualizer:
         axes[0].imshow(image)
         axes[1].imshow(np.mean(feature_map, axis=-1), cmap='gray')
 
-        scale_x = image.shape[0] / feature_map.shape[0]
-        scale_y = image.shape[1] / feature_map.shape[1]
-
-        fm_offset = -0.5 # Offset to align the ROIs with the feature map due to a shift that plt produces
+        scale_x = image.shape[0] / (feature_map.shape[0] - 1)
+        scale_y = image.shape[1] / (feature_map.shape[1] - 1)
 
         for i, roi in enumerate(rois):
             x1, y1, x2, y2 = roi
@@ -107,9 +105,6 @@ class Visualizer:
             # Scale the coordinates to the image shape
             ix1, ix2 = x1 * scale_x, x2 * scale_x
             iy1, iy2 = y1 * scale_y, y2 * scale_y
-
-            # Apply the offset
-            x1, y1, x2, y2 = x1 + fm_offset, y1 + fm_offset, x2 + fm_offset, y2 + fm_offset
 
             axes[0].add_patch(plt.Rectangle((ix1, iy1), ix2 - ix1, iy2 - iy1, fill=False, edgecolor=color, lw=1))
             axes[1].add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor=color, lw=1))

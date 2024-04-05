@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
+## [Unreleased]
+
+### Changed
+
+- Cleaned up class documentation in the utils.py file.
+
+### Fixed
+
+- The clip_boxes() function in the rpn.py file to correctly clip the bounding box predictions to the feature map dimensions.
+- The display_rois() function in the visualize.py file to correctly display the RPN's predicted rois on both the image and feature map.
+    - Removed the unnecessary fm_offset parameter.
+    - Fixed the scaling of the rois to the image dimensions.
+
+
 ## [0.2.12] - 2024-04-04
 
 ### Added
