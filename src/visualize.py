@@ -117,9 +117,9 @@ class Visualizer:
 
 
     @classmethod
-    def dislpay_aligned_sample(cls, feature_map, rois, aligned_rois):
+    def display_aligned_rois(cls, feature_map, rois, aligned_rois):
         '''
-        Display one ROI on the feature map and its alignements.
+        Display four ROIs on the feature map and its alignements.
         
             Parameters:
                 feature_map (np.array): The feature map.
@@ -130,15 +130,16 @@ class Visualizer:
                 None
         '''
 
-        fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+        fig, axes = plt.subplots(1, 5, figsize=(20, 4))
 
         # Overlay one ROI on the feature map
-        x1, y1, x2, y2 = rois[0]
         axes[0].imshow(np.mean(feature_map, axis=-1), cmap='gray')
-        axes[0].add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='b', lw=1))
+        for i in range(4):
+            x1, y1, x2, y2 = rois[i]
+            axes[0].add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor=DEFAULT_COLORS[i], lw=1))
 
-        # Display the corresponding aligned ROI
-        axes[1].imshow(np.mean(aligned_rois[0], axis=-1), cmap='gray')
+            # Display the corresponding aligned ROIs
+            axes[i + 1].imshow(np.mean(aligned_rois[i], axis=-1), cmap='gray')
 
         # Remove axis labels
         for ax in axes:

@@ -7,9 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The place_sampling_points() function to calculate the sampling points coordinates in the roi_align.py file.
+- The bilinear_interpolate() function to perform bilinear interpolation on all sampling points in the roi_align.py file.
+- The display_aligned_rois() function to visualize a sample of the aligned rois in the visualize.py file.
+
 ### Changed
 
 - Cleaned up class documentation in the utils.py file.
+- A small offset to the bounding box clipping in the rpn.py file to resolve potential conflicts during ROI alignment.
 
 ### Fixed
 

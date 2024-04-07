@@ -19,8 +19,8 @@ class Config:
             rpn_score_threshold (float): The score threshold for the RPN.
             rpn_optimizer (str): The optimizer for the RPN.
 
-            roi_align_pool_size (tuple): The pool size for the ROI Align layer.
             roi_align_sample_grid (tuple): The grid size for the ROI Align layer.
+            roi_align_pool_size (tuple): The pool size for the ROI Align layer.
 
             classifier_dense_units (int): The number of units for the classifier dense layer.
             classifier_optimizer (str): The optimizer for the classifier.
@@ -28,7 +28,7 @@ class Config:
             mask_head_conv_filters (int): The number of filters for the mask head convolutional layer.
             mask_head_upsample_filters (int): The number of filters for the mask head upsampling layer.
             mask_head_optimizer (str): The optimizer for the mask head.
-            
+
             anchor_scales (list): The scales for the anchors.
             anchor_ratios (list): The ratios for the anchors.
             
@@ -51,14 +51,16 @@ class Config:
 
         # RPN
         self.rpn_conv_filters = 512
+        self.rpn_clip_offset = 1e-6
         self.rpn_max_proposals = 100
         self.rpn_iou_threshold = 0.7
         self.rpn_score_threshold = 0.5
         self.rpn_optimizer = 'adam'
 
         # ROI Align
+        self.roi_align_sample_grid = (14, 14)
+        self.roi_align_sample_offset = 1e-7
         self.roi_align_pool_size = (7, 7)
-        self.roi_align_sample_grid = (2, 2)
 
         # Classifier
         self.classifier_dense_units = 1024
