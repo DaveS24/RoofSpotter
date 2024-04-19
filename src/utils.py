@@ -60,7 +60,7 @@ class Config:
         # ROI Align
         self.roi_align_sample_grid = (14, 14)
         self.roi_align_sample_offset = 1e-7
-        self.roi_align_pool_size = (7, 7)
+        self.roi_align_pool_size = (2, 2)
 
         # Classifier
         self.classifier_dense_units = 1024

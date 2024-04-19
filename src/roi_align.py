@@ -1,5 +1,4 @@
 import tensorflow as tf
-import time
 
 
 class ROIAlignLayer:
@@ -49,8 +48,8 @@ class ROIAlignLayer:
         # Interpolate the feature map using the sampling points
         interpolated_rois = self.bilinear_interpolate(input_feature_map, sampling_points) # Shape: (batch_size, num_rois, sample_grid[0], sample_grid[1], num_channels)
 
-        # Pool the interpolations
-        aligned_rois = self.pool_interpolations(interpolated_rois) # Shape: (batch_size, num_rois, pool_size, pool_size, num_channels)
+        # Pool the interpolations, Shape: (batch_size, num_rois, pool_size, pool_size, num_channels)
+        aligned_rois = self.pool_interpolations(interpolated_rois)
 
         model = tf.keras.Model(inputs=[input_feature_map, input_roi_boxes], outputs=aligned_rois)
         return model
@@ -151,5 +150,20 @@ class ROIAlignLayer:
     
 
     def pool_interpolations(self, interpolated_rois):
-        aligned_rois = interpolated_rois
-        return aligned_rois
+        '''
+        Pool the interpolations.
+
+            Parameters:
+                interpolated_rois (tf.Tensor): The interpolated points in the feature map.
+
+            Returns:
+                pooled_points (tf.Tensor): The pooled points.
+        '''
+        
+        shape = tf.shape(interpolated_rois)
+        interpolated_rois = tf.reshape(interpolated_rois, tf.concat([[shape[0] * shape[1]], shape[2:]], axis=0)) # Shape: (batch_size*num_rois, sample_grid[0], sample_grid[1], num_channels)
+
+        pooled_points = tf.keras.layers.MaxPool2D(pool_size=self.config.roi_align_pool_size)(interpolated_rois)
+
+        pooled_points = tf.reshape(pooled_points, tf.concat([[shape[0], shape[1]], shape[2:4]//2, [shape[4]]], axis=0)) # Shape: (batch_size, num_rois, pool_size, pool_size, num_channels)
+        return pooled_points
