@@ -15,9 +15,9 @@ tf.random.set_seed(0)
 
 
 class MaskRCNN:
-    '''
+    """
     The Mask R-CNN model.
-    
+
         Attributes:
             config (Config): The configuration settings.
             backbone (Backbone): The backbone for the Mask R-CNN model.
@@ -26,10 +26,10 @@ class MaskRCNN:
             classifier (Classifier): The classifier for the Mask R-CNN model.
             mask_head (MaskHead): The mask head for the Mask R-CNN model.
             model (tf.keras.Model): The Mask R-CNN model.
-            
+
         Methods:
             build_model: Link the components to build the Mask R-CNN model.
-    '''
+    """
 
     def __init__(self):
         self.config = Config()
@@ -42,20 +42,17 @@ class MaskRCNN:
 
         self.model = self.build_model()
 
-
     def build_model(self):
-        '''
+        """
         Link the components to build the Mask R-CNN model.
-        
-            Parameters:
-                None
-                
+
             Returns:
                 model (tf.keras.Model): The Mask R-CNN model.
-        '''
+        """
 
         # Get the input image
-        input_image = tf.keras.layers.Input(shape=self.config.image_shape, batch_size=self.config.batch_size, name='input_image')
+        input_image = tf.keras.layers.Input(shape=self.config.image_shape, batch_size=self.config.batch_size,
+                                            name='input_image')
 
         # Get the feature map from the backbone
         feature_map = self.backbone.model(input_image)
@@ -76,23 +73,3 @@ class MaskRCNN:
 
         # model = tf.keras.Model(inputs=input_image, outputs=[class_scores, bbox, binary_masks], name='Mask_RCNN')
         return model
-
-# TODO:
-    
-# The Road to a Working Model
-
-#     Complete the Components
-
-#     Training Configuration:
-#         Decide on your dataset loading, data splitting, and augmentation procedures.
-#         Choose an optimizer (e.g., Adam or SGD with momentum).
-#         Set a learning rate and consider a learning rate schedule.
-#         Implement the Mask R-CNN's overall loss function, which will likely be a combination of the individual RPN, classifier, and mask losses.
-
-#     Training: Write the training loop in TensorFlow. This involves:
-#         Fetching batches of data.
-#         Passing data through your Mask R-CNN model.
-#         Calculating losses.
-#         Updating model weights using backpropagation and your chosen optimizer.
-
-#     Evaluation: Add code to evaluate your model's performance on your validation set using metrics like average precision (AP), which is standard for object detection and segmentation tasks.

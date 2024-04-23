@@ -1,6 +1,6 @@
 # RoofSpotter: Automated Roof Detection Using Mask R-CNN and Building Boundary Regularization
 
-RoofSpotter is an advanced machine learning and deep learning project aimed at automating the detection of house rooftops in satellite images, specifically tailored for the Bavarian region of Germany. Leveraging "The Bavarian Buildings Dataset (BBD)," which provides detailed building footprint information combined with high-resolution imagery, RoofSpotter employs state-of-the-art computer vision techniques to precisely identify and outline rooftop structures.
+RoofSpotter is an advanced machine learning and deep learning project aimed at automating the detection of house rooftops in satellite images, specifically tailored for the Bavarian region of Germany. Leveraging "The Bavarian Buildings Dataset", which provides detailed building footprint information combined with high-resolution imagery, RoofSpotter employs state-of-the-art computer vision techniques to precisely identify and outline rooftop structures.
 
 The project utilizes the Mask R-CNN (Region-based Convolutional Neural Network) architecture as the primary tool for initial rooftop detection. Mask R-CNN is a robust deep learning model capable of simultaneously detecting object instances and generating pixel-wise segmentation masks, making it well-suited for tasks requiring precise spatial localization.
 

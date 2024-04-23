@@ -1,7 +1,7 @@
 class Config:
-    '''
+    """
     Configuration class for Mask R-CNN.
-    
+
         Attributes:
             image_dir (str): The directory of the input images.
             mask_dir (str): The directory of the masks.
@@ -31,10 +31,10 @@ class Config:
 
             anchor_scales (list): The scales for the anchors.
             anchor_ratios (list): The ratios for the anchors.
-            
+
         Methods:
             info: Print the configuration settings.
-    '''
+    """
 
     def __init__(self):
         # General
@@ -42,7 +42,7 @@ class Config:
         self.mask_dir = '../data/bbd250-umring/'
         self.image_shape = (250, 250, 3)
         self.num_classes = 2
-        self.batch_size = 16
+        self.batch_size = 8
         self.model_dir = '../model/'
 
         # Backbone
@@ -74,18 +74,14 @@ class Config:
         # Utils
         self.anchor_scales = [0.5, 1, 1.5, 2]
         self.anchor_ratios = [1, 1.5, 2]
-        
 
     def info(self):
-        '''
+        """
         Print the configuration settings.
-        
-            Parameters:
-                None
-                
+
             Returns:
                 None
-        '''
+        """
 
         for attr, value in self.__dict__.items():
             print(f"{attr}: {value}")
